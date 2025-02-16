@@ -76,6 +76,16 @@ Junk-Wunk was built from ground zero during the **HACK-NDROID** hackathon by **A
    flutter run
    ```
 
+## 🤝 Contributing
+
+We welcome contributions! If you'd like to improve Junk-Wunk, feel free to fork the repo and submit a pull request.
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Commit your changes (`git commit -m 'Add new feature'`).
+4. Push to the branch (`git push origin feature-branch`).
+5. Open a pull request.
+
 ## 📜 License
 
 This project is licensed under the MIT License.
