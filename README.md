@@ -78,7 +78,7 @@ Junk-Wunk was built from ground zero during the **HACK-NDROID** hackathon by **A
 
 ## 🤝 Contributing
 
-We welcome contributions! If you'd like to improve Junk-Wunk, feel free to fork the repo and submit a pull request.
+We invite contributions! If you're interested in enhancing Junk-Wunk, please fork the repository and submit a pull request.
 
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature-branch`).
