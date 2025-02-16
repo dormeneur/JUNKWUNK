@@ -12,7 +12,7 @@ Junk-Wunk is an innovative app designed to bridge the gap between rag pickers an
 
 ## 🏆 Hackathon Achievement
 
-Junk-Wunk was built from ground zero during the **HACK-NDROID** hackathon by **Android Club at VIT Chennai**, where it won **2nd place!** 🎉
+We built Junk-Wunk from scratch during `HACK-N-DROID`, A 24Hr Hackathon by the `Android Club` at VIT Chennai, where we won the **2nd place!**
 
 ### 🎉 Team GIGABOIS
 
