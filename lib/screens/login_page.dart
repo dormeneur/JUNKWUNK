@@ -4,7 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import '../widgets/role_selection_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/auth_helpers.dart';
 import 'buyer/buyer_dashboard.dart';
 import 'seller/seller_dashboard.dart';
 
@@ -48,6 +49,10 @@ class LoginPage extends StatelessWidget {
         return 'Authentication failed';
       }
 
+      // Reset the user_logged_out flag when login is successful
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('user_logged_out', false);
+
       return null;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -77,11 +82,15 @@ class LoginPage extends StatelessWidget {
         return 'Password must contain at least 8 characters, including uppercase, lowercase, number, and special character';
       }
 
+      print('DEBUG: Starting signup process for ${data.name}');
+
       final userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: data.name!,
         password: data.password!,
       );
+
+      print('DEBUG: User created with UID: ${userCredential.user?.uid}');
 
       // Create user document (removed emailVerified field)
       await FirebaseFirestore.instance
@@ -92,8 +101,20 @@ class LoginPage extends StatelessWidget {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
+      print('DEBUG: User document created in Firestore');
+
+      // Reset the user_logged_out flag when signup is successful
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('user_logged_out', false);
+
+      // Force update auth state to avoid loading issue
+      await userCredential.user?.reload();
+      print('DEBUG: User auth state reloaded');
+
       return null;
     } on FirebaseAuthException catch (e) {
+      print(
+          'DEBUG: FirebaseAuthException during signup: ${e.code} - ${e.message}');
       switch (e.code) {
         case 'email-already-in-use':
           return 'An account already exists with this email';
@@ -104,6 +125,9 @@ class LoginPage extends StatelessWidget {
         default:
           return e.message ?? 'Sign up failed';
       }
+    } catch (e) {
+      print('DEBUG: Unexpected error during signup: $e');
+      return 'An unexpected error occurred: $e';
     }
   }
 
@@ -123,48 +147,6 @@ class LoginPage extends StatelessWidget {
           return 'Invalid email format';
         default:
           return e.message ?? 'Password recovery failed';
-      }
-    }
-  }
-
-  void _handleSuccessfulLogin(BuildContext context, User user) async {
-    // Check if user already has a role
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-
-    if (userDoc.exists && userDoc.data()!.containsKey('role')) {
-      // User already has a role, navigate directly
-      final userRole = userDoc.data()?['role'] as String;
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          userRole == 'seller' ? '/seller/dashboard' : '/buyer/dashboard',
-        );
-      }
-    } else {
-      // Show role selection only for new users
-      if (context.mounted) {
-        final String? selectedRole = await showRoleSelectionDialog(context);
-
-        if (selectedRole != null && context.mounted) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-            'role': selectedRole,
-          }, SetOptions(merge: true));
-
-          if (context.mounted) {
-            Navigator.pushReplacementNamed(
-              context,
-              selectedRole == 'seller'
-                  ? '/seller/dashboard'
-                  : '/buyer/dashboard',
-            );
-          }
-        }
       }
     }
   }
@@ -261,11 +243,6 @@ class LoginPage extends StatelessWidget {
                       .signInWithCredential(credential);
 
                   if (userCredential.user != null) {
-                    final userDoc = await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userCredential.user!.uid)
-                        .get();
-
                     // Check if this is a new user
                     if (userCredential.additionalUserInfo?.isNewUser == true) {
                       await FirebaseFirestore.instance
@@ -273,44 +250,20 @@ class LoginPage extends StatelessWidget {
                           .doc(userCredential.user!.uid)
                           .set({
                         'email': userCredential.user!.email,
+                        'displayName': userCredential.user!.displayName,
+                        'photoURL': userCredential.user!.photoURL,
                         'createdAt': FieldValue.serverTimestamp(),
                       });
                     }
 
-                    Future.delayed(Duration(milliseconds: 1500), () async {
-                      if (context.mounted) {
-                        if (!userDoc.exists ||
-                            !userDoc.data()!.containsKey('role')) {
-                          final String? selectedRole =
-                              await showRoleSelectionDialog(context);
-                          if (selectedRole != null && context.mounted) {
-                            await FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(userCredential.user!.uid)
-                                .set({
-                              'role': selectedRole,
-                            }, SetOptions(merge: true));
+                    // Reset the user_logged_out flag when Google sign-in is successful
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('user_logged_out', false);
 
-                            if (context.mounted) {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                selectedRole == 'seller'
-                                    ? '/seller/dashboard'
-                                    : '/buyer/dashboard',
-                              );
-                            }
-                          }
-                        } else {
-                          final userRole = userDoc.data()?['role'] as String;
-                          Navigator.pushReplacementNamed(
-                            context,
-                            userRole == 'seller'
-                                ? '/seller/dashboard'
-                                : '/buyer/dashboard',
-                          );
-                        }
-                      }
-                    });
+                    if (context.mounted) {
+                      // Use the helper method to handle navigation
+                      await AuthHelpers.handlePostAuthNavigation(context);
+                    }
                   }
 
                   return null;
@@ -319,50 +272,27 @@ class LoginPage extends StatelessWidget {
                 }
               }),
         ],
-        onSubmitAnimationCompleted: () async {
-          User? user = FirebaseAuth.instance.currentUser;
+        onSubmitAnimationCompleted: () {
+          print('DEBUG: Login/Signup animation completed');
+
+          // Get the current user directly
+          final User? user = FirebaseAuth.instance.currentUser;
+
           if (user != null && context.mounted) {
-            // Check if user already has a role
-            final userDoc = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.uid)
-                .get();
+            // Reset logout flag
+            SharedPreferences.getInstance().then((prefs) {
+              prefs.setBool('user_logged_out', false);
+            });
 
-            if (userDoc.exists && userDoc.data()!.containsKey('role')) {
-              // User already has a role, navigate directly
-              final userRole = userDoc.data()?['role'] as String;
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(
-                  context,
-                  userRole == 'seller'
-                      ? '/seller/dashboard'
-                      : '/buyer/dashboard',
-                );
-              }
-            } else {
-              // Show role selection only for new users
-              if (context.mounted) {
-                final String? selectedRole =
-                    await showRoleSelectionDialog(context);
-
-                if (selectedRole != null && context.mounted) {
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user.uid)
-                      .set({
-                    'role': selectedRole,
-                  }, SetOptions(merge: true));
-
-                  if (context.mounted) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      selectedRole == 'seller'
-                          ? '/seller/dashboard'
-                          : '/buyer/dashboard',
-                    );
-                  }
-                }
-              }
+            // Navigate immediately without delay
+            AuthHelpers.handlePostAuthNavigation(context);
+          } else {
+            print('DEBUG: User is null after animation completion');
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Authentication issue. Please try again.')),
+              );
             }
           }
         },

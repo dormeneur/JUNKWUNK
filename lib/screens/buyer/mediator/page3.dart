@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hackathon/screens/profile/profile_page.dart';
+
+import '../../profile/profile_page.dart';
 
 class Page3 extends StatelessWidget {
   @override

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ItemCard extends StatelessWidget {
+class ItemCard extends StatefulWidget {
   final String itemId;
   final String? sellerId;
   final String imageUrl;
@@ -11,6 +11,7 @@ class ItemCard extends StatelessWidget {
   final List<String> categories;
   final List<String> itemTypes;
   final String price;
+  final int quantity;
   final Timestamp? timestamp;
   final VoidCallback? onCartUpdated;
   final String status;
@@ -25,10 +26,24 @@ class ItemCard extends StatelessWidget {
     required this.categories,
     required this.itemTypes,
     required this.price,
+    this.quantity = 1,
     this.timestamp,
     this.onCartUpdated,
     this.status = 'active',
   });
+
+  @override
+  State<ItemCard> createState() => _ItemCardState();
+}
+
+class _ItemCardState extends State<ItemCard> {
+  int _selectedQuantity = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedQuantity = 1;
+  }
 
   Future<void> _addToCart(
       BuildContext context, String sellerId, String itemId) async {
@@ -43,61 +58,120 @@ class ItemCard extends StatelessWidget {
       'sellerId': sellerId,
       'itemId': itemId,
       'timestamp': Timestamp.now(),
-      'title': title,
-      'description': description,
-      'imageUrl': imageUrl,
-      'categories': categories,
-      'itemTypes': itemTypes,
-      'price': price,
-      'status': status,
+      'title': widget.title,
+      'description': widget.description,
+      'imageUrl': widget.imageUrl,
+      'categories': widget.categories,
+      'itemTypes': widget.itemTypes,
+      'price': widget.price,
+      'quantity': _selectedQuantity,
+      'status': widget.status,
     });
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Added to cart!')),
+        SnackBar(
+          content: Text('Added $_selectedQuantity item(s) to cart!'),
+          backgroundColor: Color(0xFF371f97),
+        ),
       );
-      onCartUpdated?.call();
+      widget.onCartUpdated?.call();
     }
+  }
+
+  void _updateQuantity(int amount) {
+    setState(() {
+      _selectedQuantity =
+          (_selectedQuantity + amount).clamp(1, widget.quantity);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
+      elevation: 3,
+      shadowColor: Colors.black.withOpacity(0.1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => _showImageDialog(context, imageUrl),
-            child: Hero(
-              tag: 'image-$itemId',
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image_not_supported,
-                            size: 50, color: Colors.grey),
-                      );
-                    },
+          Stack(
+            children: [
+              GestureDetector(
+                onTap: () => _showImageDialog(context, widget.imageUrl),
+                child: Hero(
+                  tag: 'image-${widget.itemId}',
+                  child: ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Image.network(
+                        widget.imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF371f97)),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.image_not_supported,
+                                size: 50, color: Colors.grey),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              if (widget.quantity > 1)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF371f97).withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.inventory_2,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${widget.quantity} available',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -112,17 +186,18 @@ class ItemCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            title,
+                            widget.title,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
+                              color: Color(0xFF371f97),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Price: ₹$price',
+                            'Price: ₹${widget.price}',
                             style: const TextStyle(
                               color: Colors.blue,
                               fontWeight: FontWeight.w500,
@@ -133,14 +208,20 @@ class ItemCard extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.info_outline),
-                      onPressed: () => _showDetailsDialog(context, title,
-                          description, categories, itemTypes, price),
+                      onPressed: () => _showDetailsDialog(
+                          context,
+                          widget.title,
+                          widget.description,
+                          widget.categories,
+                          widget.itemTypes,
+                          widget.price,
+                          widget.quantity),
                       tooltip: 'View Details',
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                if (categories.isNotEmpty) ...[
+                if (widget.categories.isNotEmpty) ...[
                   const Text(
                     'Categories:',
                     style: TextStyle(
@@ -153,7 +234,7 @@ class ItemCard extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: categories.map((category) {
+                    children: widget.categories.map((category) {
                       return Chip(
                         label: Text(category),
                         backgroundColor: _getCategoryColor(category),
@@ -165,7 +246,7 @@ class ItemCard extends StatelessWidget {
                     }).toList(),
                   ),
                 ],
-                if (itemTypes.isNotEmpty) ...[
+                if (widget.itemTypes.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   const Text(
                     'Item Types:',
@@ -179,7 +260,7 @@ class ItemCard extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: itemTypes.map((type) {
+                    children: widget.itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
                         backgroundColor: Colors.purple[300],
@@ -193,26 +274,74 @@ class ItemCard extends StatelessWidget {
                 ],
                 const SizedBox(height: 12),
                 Text(
-                  description,
+                  widget.description,
                   style: TextStyle(color: Colors.grey[800]),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Quantity selector
+                    if (widget.quantity > 1)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFFEEE8F6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.remove, size: 18),
+                              onPressed: _selectedQuantity > 1
+                                  ? () => _updateQuantity(-1)
+                                  : null,
+                              color: Color(0xFF371f97),
+                              padding: EdgeInsets.all(4),
+                              constraints: BoxConstraints(),
+                              splashRadius: 20,
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: Text(
+                                '$_selectedQuantity',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF371f97),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.add, size: 18),
+                              onPressed: _selectedQuantity < widget.quantity
+                                  ? () => _updateQuantity(1)
+                                  : null,
+                              color: Color(0xFF371f97),
+                              padding: EdgeInsets.all(4),
+                              constraints: BoxConstraints(),
+                              splashRadius: 20,
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      SizedBox(),
                     ElevatedButton.icon(
                       onPressed: () {
-                        if (sellerId == null) return;
-                        _addToCart(context, sellerId!, itemId);
+                        if (widget.sellerId == null) return;
+                        _addToCart(context, widget.sellerId!, widget.itemId);
                       },
                       icon: const Icon(Icons.add_shopping_cart, size: 18),
                       label: const Text('Add to Cart'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Color(0xFF371f97),
                         foregroundColor: Colors.white,
-                        elevation: 0,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ],
@@ -240,7 +369,7 @@ class ItemCard extends StatelessWidget {
                 minScale: 0.5,
                 maxScale: 4,
                 child: Hero(
-                  tag: 'fullscreen-$itemId',
+                  tag: 'fullscreen-${widget.itemId}',
                   child: Image.network(
                     imageUrl,
                     fit: BoxFit.contain,
@@ -256,9 +385,15 @@ class ItemCard extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
             ],
           ),
@@ -274,13 +409,14 @@ class ItemCard extends StatelessWidget {
     List<String> categories,
     List<String> itemTypes,
     String price,
+    int quantity,
   ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
             width: double.infinity,
@@ -303,16 +439,40 @@ class ItemCard extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
+                                color: Color(0xFF371f97),
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              'Price: ₹$price',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.blue,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Price: ₹$price',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (quantity > 1) ...[
+                                  SizedBox(width: 12),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFF371f97).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'Quantity: $quantity',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF371f97),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ],
                         ),

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../login_page.dart';
 import 'edit_profile_page.dart';
+import '../../widgets/app_bar.dart';
 
 class ProfileUI extends StatefulWidget {
   @override
@@ -14,6 +15,10 @@ class _ProfileUIState extends State<ProfileUI> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = true;
+
+  // App theme colors
+  final Color primaryColor = const Color(0xFF371f97);
+  final Color accentColor = const Color(0xFFf5f5f5);
 
   // User info variables
   String userType = "";
@@ -105,6 +110,128 @@ class _ProfileUIState extends State<ProfileUI> {
     }
   }
 
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 16,
+          child: Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  primaryColor.withOpacity(0.9),
+                  primaryColor,
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.5),
+                  blurRadius: 15,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Log Out',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Are you sure you want to logout?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: primaryColor,
+                          backgroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _signOut(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.red.shade400,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _signOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -127,142 +254,221 @@ class _ProfileUIState extends State<ProfileUI> {
     }
   }
 
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 40, 20, 30),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.deepPurple[800]!,
-            Colors.deepPurple[600]!,
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: primaryColor,
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBarWidget(
+        title: 'My Profile',
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () => _showLogoutConfirmation(context),
+            tooltip: 'Logout',
+          ),
+          SizedBox(width: 8),
+        ],
+      ),
+      body: Container(
+        color: Colors.white,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            _buildProfileHeader(),
+            SizedBox(height: 16),
+            if (userType.toLowerCase() == 'buyer') _buildVerificationCard(),
+            _buildInfoCard('Email', email, Icons.email_rounded, Colors.blue),
+            _buildInfoCard('Phone', phone, Icons.phone_rounded, Colors.green),
+            _buildInfoCard(
+                'Location', location, Icons.location_on_rounded, Colors.orange),
           ],
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToEditPage,
+        backgroundColor: primaryColor,
+        child: Icon(Icons.edit_rounded, color: Colors.white),
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return Container(
+      padding: EdgeInsets.only(bottom: 30),
+      decoration: BoxDecoration(
+        color: primaryColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         children: [
+          // Top header with credits for buyers
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Row(
-                children: [
-                  // Back button added here
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
+              if (userType.toLowerCase() == 'buyer')
+                Tooltip(
+                  message:
+                      'Earn more credits by:\n• Making donations\n• Referring friends\n• Participating in events',
+                  padding: EdgeInsets.all(12),
+                  margin: EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  if (userType.toLowerCase() ==
-                      'buyer') // Only show credits for buyers
-                    Tooltip(
-                      message:
-                          'Earn more credits by:\n• Making donations\n• Referring friends\n• Participating in events',
-                      padding: EdgeInsets.all(12),
-                      margin: EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      textStyle: TextStyle(color: Colors.white),
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.amber[700],
-                          borderRadius: BorderRadius.circular(20),
+                  textStyle: TextStyle(color: Colors.white),
+                  child: Container(
+                    margin: EdgeInsets.only(top: 16, right: 16),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.amber[700],
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: Offset(0, 3),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.stars,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '$creditPoints pts',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.stars,
+                          color: Colors.white,
+                          size: 20,
                         ),
-                      ),
-                    ),
-                  SizedBox(width: 12),
-                  TextButton.icon(
-                    onPressed: () => _signOut(context),
-                    icon: Icon(Icons.logout, color: Colors.white),
-                    label: Text(
-                      'Sign Out',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.red[400],
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                        SizedBox(width: 4),
+                        Text(
+                          '$creditPoints pts',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
             ],
           ),
           SizedBox(height: 20),
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.person,
-              size: 60,
-              color: Colors.deepPurple[800],
-            ),
+
+          // Profile picture
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Colors.white.withOpacity(0.8), Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    Icons.person,
+                    size: 70,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+              if (userType.toLowerCase() == 'buyer')
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.verified_user,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 20),
+
+          // Name
           Text(
             name,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: 26,
               fontWeight: FontWeight.bold,
+              shadows: [
+                Shadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 12),
+
+          // User type badge
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
               color: userType.toLowerCase() == "seller"
                   ? Colors.green[600]
                   : Colors.blue[600],
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               userType.toUpperCase(),
@@ -270,6 +476,7 @@ class _ProfileUIState extends State<ProfileUI> {
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 1,
               ),
             ),
           ),
@@ -284,24 +491,43 @@ class _ProfileUIState extends State<ProfileUI> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 4,
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Container(
         padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [
+              Colors.green.withOpacity(0.05),
+              Colors.green.withOpacity(0.1)
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.green.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: Icon(
-                Icons.verified,
+                Icons.verified_user_rounded,
                 color: Colors.green,
+                size: 28,
               ),
             ),
             SizedBox(width: 16),
@@ -337,22 +563,29 @@ class _ProfileUIState extends State<ProfileUI> {
   Widget _buildInfoCard(
       String title, String value, IconData icon, Color iconColor) {
     return Card(
-      elevation: 2,
+      elevation: 3,
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: iconColor),
+              child: Icon(icon, color: iconColor, size: 28),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -368,10 +601,11 @@ class _ProfileUIState extends State<ProfileUI> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    value,
+                    value.isNotEmpty ? value : 'Not provided',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: primaryColor,
                     ),
                   ),
                 ],
@@ -379,48 +613,6 @@ class _ProfileUIState extends State<ProfileUI> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.deepPurple,
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      body: Column(
-        children: [
-          _buildProfileHeader(),
-          Expanded(
-            child: Container(
-              color: Colors.grey[100],
-              child: ListView(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                children: [
-                  _buildVerificationCard(),
-                  _buildInfoCard('Email', email, Icons.email, Colors.blue),
-                  _buildInfoCard('Phone', phone, Icons.phone, Colors.green),
-                  _buildInfoCard(
-                      'Location', location, Icons.location_on, Colors.orange),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToEditPage,
-        backgroundColor: Colors.deepPurple,
-        child: Icon(Icons.edit, color: Colors.white),
-        elevation: 4,
       ),
     );
   }

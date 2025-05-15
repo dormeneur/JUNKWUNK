@@ -1,0 +1,2 @@
+C:/Arhaan/HACKATHON PROJECTS/Junk-Wunk/android/app/.cxx/RelWithDebInfo/2f41u3t6/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Arhaan/HACKATHON PROJECTS/Junk-Wunk/android/app/.cxx/RelWithDebInfo/2f41u3t6/arm64-v8a/CMakeFiles/rebuild_cache.dir

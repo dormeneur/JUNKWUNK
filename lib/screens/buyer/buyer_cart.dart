@@ -122,19 +122,66 @@ class _BuyerCartState extends State<BuyerCart> {
         if (!checkoutItems.contains(doc.id)) continue;
 
         final data = doc.data();
+        final sellerId = data['sellerId'];
+        final itemId = data['itemId'];
+        final cartQuantity = data['quantity'] ?? 1;
+
+        // Get the current item from seller's inventory
+        final itemDoc = await _firestore
+            .collection('sellers')
+            .doc(sellerId)
+            .collection('items')
+            .doc(itemId)
+            .get();
+
+        if (itemDoc.exists) {
+          final itemData = itemDoc.data() as Map<String, dynamic>;
+          final currentQuantity = itemData['quantity'] ?? 1;
+
+          // Calculate remaining quantity after purchase
+          final remainingQuantity = currentQuantity - cartQuantity;
+
+          // If quantity reaches 0, mark as sold
+          if (remainingQuantity <= 0) {
+            // Update the item status to sold
+            batch.update(
+                _firestore
+                    .collection('sellers')
+                    .doc(sellerId)
+                    .collection('items')
+                    .doc(itemId),
+                {
+                  'status': 'sold',
+                  'soldTimestamp': Timestamp.now(),
+                  'soldTo': userId,
+                  'quantity': 0
+                });
+          } else {
+            // Update the item quantity
+            batch.update(
+                _firestore
+                    .collection('sellers')
+                    .doc(sellerId)
+                    .collection('items')
+                    .doc(itemId),
+                {'quantity': remainingQuantity});
+          }
+        }
 
         // Create purchase record
         final purchaseRef = _firestore.collection('purchases').doc();
         batch.set(purchaseRef, {
           'userId': userId,
-          'sellerId': data['sellerId'],
-          'itemId': data['itemId'],
+          'sellerId': sellerId,
+          'itemId': itemId,
           'timestamp': Timestamp.now(),
-          'status': 'pending',
+          'status': 'completed',
           'title': data['title'],
           'description': data['description'],
           'categories': data['categories'],
           'imageUrl': data['imageUrl'],
+          'quantity': cartQuantity,
+          'price': data['price'],
         });
 
         // Delete the item from cart
@@ -176,14 +223,13 @@ class _BuyerCartState extends State<BuyerCart> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: lightPurple,
       appBar: AppBar(
-        title: Text(
-          'JunkWunk',
-          style: TextStyle(color: blackColor, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: whiteColor,
-        elevation: 1,
-        iconTheme: IconThemeData(color: blackColor),
+        title: const Text('My Cart',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: primaryColor,
+        elevation: 4,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           if (isSelectionMode) ...[
             IconButton(
@@ -191,7 +237,7 @@ class _BuyerCartState extends State<BuyerCart> {
               onPressed: selectedItems.isNotEmpty ? _deleteSelectedItems : null,
             ),
             IconButton(
-              icon: Icon(Icons.close, color: blackColor),
+              icon: Icon(Icons.close, color: whiteColor),
               onPressed: () {
                 setState(() {
                   isSelectionMode = false;
@@ -281,41 +327,35 @@ class _BuyerCartState extends State<BuyerCart> {
     );
   }
 
-  Widget _buildCategoryChip(String category, Color color) {
+  Widget _buildCategoryButton(String category) {
+    final count = categoryCounts[category] ?? 0;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            category,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
+      margin: const EdgeInsets.only(right: 8),
+      child: ElevatedButton.icon(
+        onPressed: () {},
+        icon: Icon(
+          category == 'Donate'
+              ? Icons.volunteer_activism
+              : category == 'Recyclable'
+                  ? Icons.recycling
+                  : Icons.delete_outline,
+          size: 16,
+          color: Colors.white,
+        ),
+        label: Text(
+          '$category ($count)',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor.withOpacity(0.8),
+          foregroundColor: Colors.white,
+          elevation: 3,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withOpacity(0.3), width: 1),
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              '${categoryCounts[category]}',
-              style: TextStyle(
-                color: whiteColor,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -462,37 +502,33 @@ class _BuyerCartState extends State<BuyerCart> {
     );
   }
 
-  Widget _buildCheckoutBar() {
+  Widget _buildCheckoutButton() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.transparent, // Made transparent as requested
-        boxShadow: [
-          BoxShadow(
-            color: blackColor.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: ElevatedButton(
+        onPressed: checkoutItems.isEmpty ? null : _processCheckout,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          disabledBackgroundColor: Colors.grey.shade400,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          elevation: 3,
+          shadowColor: primaryColor.withOpacity(0.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
-      ),
-      child: Align(
-        // Using Align instead of Row
-        alignment: Alignment.centerRight, // Right alignment
-        child: ElevatedButton.icon(
-          onPressed: checkoutItems.isNotEmpty ? _processCheckout : null,
-          icon: const Icon(Icons.shopping_cart_checkout),
-          label: const Text('Checkout'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,
-            foregroundColor: whiteColor,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.shopping_cart_checkout, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Proceed to Checkout',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -509,5 +545,76 @@ class _BuyerCartState extends State<BuyerCart> {
       default:
         return const Color(0xFF371F97); // Default to primary color
     }
+  }
+
+  Widget _buildCategoryChip(String category, Color color) {
+    final count = categoryCounts[category] ?? 0;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            category == 'Donate'
+                ? Icons.volunteer_activism
+                : category == 'Recyclable'
+                    ? Icons.recycling
+                    : Icons.delete_outline,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$category ($count)',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckoutBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: whiteColor,
+        boxShadow: [
+          BoxShadow(
+            color: blackColor.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Selected Items: ${checkoutItems.length}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: blackColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildCheckoutButton(),
+        ],
+      ),
+    );
   }
 }

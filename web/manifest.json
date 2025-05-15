@@ -1,6 +1,6 @@
 {
-    "name": "hackathon",
-    "short_name": "hackathon",
+    "name": "JunkWunk",
+    "short_name": "JunkWunk",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -27,6 +27,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _locationController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -38,6 +39,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveChanges() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
@@ -49,20 +54,32 @@ class _EditProfilePageState extends State<EditProfilePage> {
           'displayName': _nameController.text,
           'phone': _phoneController.text,
           'location': _locationController.text,
+          'profileCompleted': true,
+          'updatedAt': FieldValue.serverTimestamp(),
         });
 
-        Navigator.pop(context, {
-          "name": _nameController.text,
-          "email": widget.email, // Email remains unchanged
-          "phone": _phoneController.text,
-          "location": _locationController.text,
-        });
+        if (mounted) {
+          Navigator.pop(context, {
+            "name": _nameController.text,
+            "email": widget.email, // Email remains unchanged
+            "phone": _phoneController.text,
+            "location": _locationController.text,
+          });
+        }
       }
     } catch (e) {
       print('Error saving changes: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving changes')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving changes')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -164,11 +181,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           backgroundColor: Colors.deepPurple,
           iconTheme: IconThemeData(color: Colors.white),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(16),
-            ),
-          ),
           actions: [
             IconButton(
               icon: Icon(Icons.edit, color: Colors.white),
@@ -216,7 +228,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: _getCurrentLocation,
+                            onPressed: _isLoading ? null : _getCurrentLocation,
                             icon: Icon(Icons.my_location, color: Colors.white),
                             label: Text(
                               "Use Current Location",
@@ -240,17 +252,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   width: 200,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _saveChanges,
-                    child: Text(
-                      "Save Changes",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    onPressed: _isLoading ? null : _saveChanges,
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Save Changes",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple,
+                      disabledBackgroundColor: Colors.deepPurple[200],
                       elevation: 3,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
@@ -294,6 +309,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       padding: EdgeInsets.only(bottom: 12),
       child: TextField(
         controller: controller,
+        enabled: !_isLoading,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: Colors.deepPurple),

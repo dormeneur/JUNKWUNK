@@ -1,4 +1,4 @@
-package com.example.hackathon
+package com.junkwunk.app
 
 import io.flutter.embedding.android.FlutterActivity
 

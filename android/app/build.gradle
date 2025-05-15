@@ -6,9 +6,9 @@ plugins {
 }
 
 android {
-    namespace = "com.example.hackathon"
+    namespace = "com.junkwunk.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = rootProject.ext.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.hackathon"
+        applicationId = "com.junkwunk.app"
         minSdkVersion 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -10,6 +10,10 @@ allprojects {
     }
 }
 
+ext {
+    ndkVersion = "29.0.13113456"  // Updated to match the installing version
+}
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

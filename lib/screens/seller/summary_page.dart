@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../widgets/app_bar.dart';
 
 class SummaryPage extends StatelessWidget {
   final String? imageUrl;
@@ -8,14 +9,15 @@ class SummaryPage extends StatelessWidget {
   final String? description;
   final List<String>? itemTypes;
   final String? price;
+  final String? quantity;
   final bool isViewMode;
   final String? title;
 
   // Custom color palette
   static const Color primaryColor = Color(0xFF371F97);
-  static const Color secondaryColor = Color(0xFFEEE8F6);
   static const Color whiteColor = Color(0xFFFFFFFF);
   static const Color blackColor = Color(0xFF000000);
+  static const Color greyColor = Color(0xFFF5F5F5);
 
   SummaryPage.viewAll()
       : imageUrl = null,
@@ -23,6 +25,7 @@ class SummaryPage extends StatelessWidget {
         description = null,
         itemTypes = null,
         price = null,
+        quantity = null,
         title = null,
         isViewMode = true;
 
@@ -34,6 +37,7 @@ class SummaryPage extends StatelessWidget {
     required this.itemTypes,
     required this.price,
     required this.title,
+    this.quantity = "1",
   })  : isViewMode = false,
         super(key: key);
 
@@ -56,9 +60,12 @@ class SummaryPage extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.close, color: whiteColor),
-                onPressed: () => Navigator.pop(context),
+              Material(
+                color: Colors.transparent,
+                child: IconButton(
+                  icon: Icon(Icons.close, color: whiteColor),
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
             ],
           ),
@@ -98,94 +105,231 @@ class SummaryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: secondaryColor,
-      appBar: AppBar(
-        title: Text(
-          isViewMode ? 'Your Items' : 'Item Summary',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-        backgroundColor: primaryColor,
-        elevation: 10,
-        shadowColor: Colors.black.withOpacity(0.5),
-        centerTitle: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
-          ),
-        ),
+      backgroundColor: whiteColor,
+      appBar: AppBarWidget(
+        title: 'Your Items',
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white, size: 28),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert, color: Colors.white, size: 28),
-            onPressed: () {},
-          ),
-        ],
       ),
-      floatingActionButton: isViewMode
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => Navigator.pop(context),
-              label: Text(
-                'Add More Items',
-                style: TextStyle(color: Colors.white),
-              ),
-              icon: Icon(
-                Icons.add_photo_alternate,
-                color: Colors.white,
-              ),
-              backgroundColor: primaryColor,
-            ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!isViewMode && imageUrl != null) _buildItemPreview(context),
-            _buildAllItemsList(context),
-          ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.pop(context),
+        label: Text(
+          'Add More Items',
+          style: TextStyle(color: Colors.white),
+        ),
+        icon: Icon(
+          Icons.add_photo_alternate,
+          color: Colors.white,
+        ),
+        backgroundColor: primaryColor,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          color: whiteColor,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAllItemsList(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildItemPreview(BuildContext context) {
-    if (imageUrl == null || selectedCategories == null) {
-      return Container();
+  Widget _buildAllItemsList(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Center(child: Text('Not logged in'));
     }
 
-    return Container(
-      margin: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: whiteColor,
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('sellers')
+          .doc(user.uid)
+          .collection('items')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(color: primaryColor),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 80,
+                    color: primaryColor.withOpacity(0.3),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No items found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'You have not listed any items yet.',
+                    style: TextStyle(color: Colors.grey[700]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final List<DocumentSnapshot> activeItems = [];
+        final List<DocumentSnapshot> soldItems = [];
+
+        // Separate active and sold items
+        for (var doc in docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          if (data['status'] == 'sold') {
+            soldItems.add(doc);
+          } else {
+            activeItems.add(doc);
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (activeItems.isNotEmpty) ...[
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: primaryColor.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.shopping_bag_outlined,
+                          color: primaryColor, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Active Listings (${activeItems.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: activeItems.length,
+                itemBuilder: (context, index) {
+                  return _buildItemCard(context, activeItems[index]);
+                },
+              ),
+            ],
+            if (soldItems.isNotEmpty) ...[
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.green.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: Colors.green[700], size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Sold Items (${soldItems.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: soldItems.length,
+                itemBuilder: (context, index) {
+                  return _buildItemCard(context, soldItems[index]);
+                },
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildItemCard(BuildContext context, DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final itemTitle = data['title'] ?? 'Untitled Item';
+    final itemDescription = data['description'] ?? '';
+    final itemImageUrl = data['imageUrl'] ?? '';
+    final itemCategories = List<String>.from(data['categories'] ?? []);
+    final itemPrice = data['price']?.toString() ?? '0';
+    final itemQuantity = data['quantity']?.toString() ?? '1';
+    final isItemSold = data['status'] == 'sold';
+    final soldTimestamp = data['soldTimestamp'] as Timestamp?;
+
+    // Format the sold timestamp
+    String soldDate = '';
+    if (soldTimestamp != null) {
+      final dateTime = soldTimestamp.toDate();
+      soldDate = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    }
+
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: blackColor.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => _showImageDialog(context, imageUrl!),
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Hero(
-                  tag: 'preview-$imageUrl',
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
                   child: Image.network(
-                    imageUrl!,
+                    itemImageUrl,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
@@ -195,109 +339,203 @@ class SummaryPage extends StatelessWidget {
                         ),
                       );
                     },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: greyColor,
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
-            ),
+              if (isItemSold)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                    child: Center(
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'SOLD',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           Padding(
             padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Recently Added Item',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
-                ),
-                if (title != null && title!.isNotEmpty) ...[
-                  SizedBox(height: 8),
-                  Text(
-                    title!,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: blackColor,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            itemTitle,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isItemSold ? Colors.grey[700] : primaryColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.currency_rupee,
+                                size: 16,
+                                color: isItemSold
+                                    ? Colors.grey
+                                    : Colors.green[700],
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                '₹$itemPrice',
+                                style: TextStyle(
+                                  color: isItemSold
+                                      ? Colors.grey[600]
+                                      : Colors.green[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (itemQuantity != "1" && !isItemSold) ...[
+                                SizedBox(width: 16),
+                                Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 16,
+                                  color: primaryColor,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Qty: $itemQuantity',
+                                  style: TextStyle(
+                                    color: primaryColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                              if (isItemSold && soldDate.isNotEmpty) ...[
+                                SizedBox(width: 16),
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Sold: $soldDate',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-                if (itemTypes != null && itemTypes!.isNotEmpty) ...[
-                  Text(
-                    'Types: ${itemTypes!.join(", ")}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: blackColor.withOpacity(0.8),
-                    ),
-                  ),
-                ],
-                if (price != null) ...[
-                  SizedBox(height: 8),
-                  Text(
-                    'Price: ₹$price',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-                SizedBox(height: 12),
-                Text(
-                  'Categories:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: blackColor.withOpacity(0.7),
-                  ),
+                    if (!isItemSold)
+                      IconButton(
+                        icon: Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () => _deleteItem(context, doc.id),
+                      ),
+                  ],
                 ),
                 SizedBox(height: 8),
+                Text(
+                  itemDescription,
+                  style: TextStyle(
+                    color: isItemSold ? Colors.grey[600] : Colors.grey[800],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: selectedCategories!.map((category) {
-                    return Chip(
-                      label: Text(category),
-                      backgroundColor: _getCategoryColor(category),
-                      labelStyle: TextStyle(color: whiteColor),
-                    );
+                  children: itemCategories.map((category) {
+                    return isItemSold
+                        ? Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              category,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          )
+                        : _buildCategoryChip(category);
                   }).toList(),
                 ),
-                if (description?.isNotEmpty ?? false) ...[
-                  SizedBox(height: 12),
-                  Text(
-                    'Description:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: blackColor.withOpacity(0.7),
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    description!,
-                    style: TextStyle(
-                      color: blackColor.withOpacity(0.8),
-                    ),
+                if (!isItemSold) ...[
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          // TODO: Add edit functionality
+                        },
+                        icon: Icon(Icons.edit, color: primaryColor),
+                        label:
+                            Text('Edit', style: TextStyle(color: primaryColor)),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: primaryColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Icon(Icons.access_time,
-                        size: 16, color: blackColor.withOpacity(0.6)),
-                    SizedBox(width: 4),
-                    Text(
-                      'Added ${_getFormattedDate()}',
-                      style: TextStyle(
-                        color: blackColor.withOpacity(0.6),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -306,219 +544,71 @@ class SummaryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAllItemsList(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return SizedBox();
+  Widget _buildCategoryChip(String category) {
+    // Icons and colors based on category type
+    IconData categoryIcon;
+    Color categoryColor;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Your Items',
+    switch (category.toLowerCase()) {
+      case 'donate':
+        categoryIcon = Icons.volunteer_activism;
+        categoryColor = Colors.green[600]!;
+        break;
+      case 'recyclable':
+        categoryIcon = Icons.recycling;
+        categoryColor = Colors.blue[600]!;
+        break;
+      case 'non-recyclable':
+        categoryIcon = Icons.delete_outline;
+        categoryColor = Colors.orange[600]!;
+        break;
+      default:
+        categoryIcon = Icons.category;
+        categoryColor = Colors.grey[600]!;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: categoryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: categoryColor.withOpacity(0.5),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            categoryIcon,
+            color: categoryColor,
+            size: 14,
+          ),
+          SizedBox(width: 4),
+          Text(
+            category,
             style: TextStyle(
-              fontSize: 20,
+              color: categoryColor,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: primaryColor,
             ),
           ),
-        ),
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('sellers')
-              .doc(user.uid)
-              .collection('items')
-              .orderBy('timestamp', descending: true)
-              .limit(10)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text('Something went wrong'));
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(color: primaryColor),
-              );
-            }
-
-            final items = snapshot.data?.docs ?? [];
-            if (items.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'No items found',
-                    style: TextStyle(color: blackColor.withOpacity(0.7)),
-                  ),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index].data() as Map<String, dynamic>;
-                final itemId = items[index].id;
-                final categories = List<String>.from(item['categories'] ?? []);
-                final itemImageUrl = item['imageUrl'] as String;
-                final itemTypes = List<String>.from(item['itemTypes'] ?? []);
-                final itemDescription = item['description'] as String? ?? '';
-                final itemPrice = item['price']?.toString() ?? '';
-                final itemTitle = item['title'] as String? ?? '';
-
-                return Dismissible(
-                  key: Key(itemId),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 20),
-                    color: Colors.red,
-                    child: Icon(Icons.delete, color: whiteColor),
-                  ),
-                  onDismissed: (direction) {
-                    _deleteItem(context, itemId);
-                  },
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: whiteColor,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: blackColor.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => _showImageDialog(context, itemImageUrl),
-                          child: Hero(
-                            tag: 'item-$itemImageUrl',
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.horizontal(
-                                left: Radius.circular(12),
-                              ),
-                              child: Image.network(
-                                itemImageUrl,
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (itemTitle.isNotEmpty) ...[
-                                  Text(
-                                    itemTitle,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                ],
-                                Text(
-                                  'Type: $itemTypes',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: blackColor,
-                                  ),
-                                ),
-                                if (itemPrice.isNotEmpty) ...[
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Price: ₹$itemPrice',
-                                    style: TextStyle(
-                                      color: primaryColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                                SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 4,
-                                  runSpacing: 4,
-                                  children: categories.map((category) {
-                                    return Chip(
-                                      label: Text(
-                                        category,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: whiteColor,
-                                        ),
-                                      ),
-                                      backgroundColor:
-                                          _getCategoryColor(category),
-                                      padding: EdgeInsets.zero,
-                                      materialTapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    );
-                                  }).toList(),
-                                ),
-                                if (itemDescription.isNotEmpty) ...[
-                                  SizedBox(height: 8),
-                                  Text(
-                                    itemDescription,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: blackColor.withOpacity(0.6),
-                                    ),
-                                  ),
-                                ],
-                                if (item['timestamp'] != null) ...[
-                                  SizedBox(height: 8),
-                                  Text(
-                                    _getFormattedDate(
-                                        item['timestamp'] as Timestamp),
-                                    style: TextStyle(
-                                      color: blackColor.withOpacity(0.6),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        SizedBox(height: 80),
-      ],
+        ],
+      ),
     );
   }
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'donate':
-        return primaryColor.withOpacity(0.8);
+        return Colors.green[600]!;
       case 'recyclable':
-        return primaryColor;
+        return Colors.blue[600]!;
       case 'non-recyclable':
-        return primaryColor.withOpacity(0.6);
+        return Colors.orange[600]!;
       default:
-        return blackColor.withOpacity(0.6);
+        return Colors.grey[600]!;
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hackathon/screens/buyer/buyer_cart.dart';
+
+import '../buyer_cart.dart';
 
 class Page2 extends StatelessWidget {
   @override
