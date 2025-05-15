@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'summary_page.dart';
 
 class SellerDashboard extends StatefulWidget {
+  const SellerDashboard({super.key});
+
   @override
   _SellerDashboardState createState() => _SellerDashboardState();
 }

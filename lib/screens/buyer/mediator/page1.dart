@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../buyer_dashboard.dart';
 
 class Page1 extends StatelessWidget {
+  const Page1({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(

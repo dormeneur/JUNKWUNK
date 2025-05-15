@@ -11,7 +11,7 @@ class EditProfilePage extends StatefulWidget {
   final String phone;
   final String location;
 
-  EditProfilePage({
+  const EditProfilePage({super.key, 
     required this.name,
     required this.email,
     required this.phone,

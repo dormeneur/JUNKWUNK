@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -268,7 +267,6 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
             print('!!!DEBUG: Firestore error: $firestoreError');
             // Show error but continue with navigation
             if (mounted) {
-              ;
             }
           }
 

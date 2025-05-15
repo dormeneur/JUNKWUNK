@@ -19,7 +19,7 @@ class SummaryPage extends StatelessWidget {
   static const Color blackColor = Color(0xFF000000);
   static const Color greyColor = Color(0xFFF5F5F5);
 
-  SummaryPage.viewAll()
+  const SummaryPage.viewAll({super.key})
       : imageUrl = null,
         selectedCategories = null,
         description = null,
@@ -30,7 +30,7 @@ class SummaryPage extends StatelessWidget {
         isViewMode = true;
 
   const SummaryPage({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.selectedCategories,
     required this.description,
@@ -38,41 +38,8 @@ class SummaryPage extends StatelessWidget {
     required this.price,
     required this.title,
     this.quantity = "1",
-  })  : isViewMode = false,
-        super(key: key);
+  })  : isViewMode = false;
 
-  void _showImageDialog(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              InteractiveViewer(
-                panEnabled: true,
-                boundaryMargin: EdgeInsets.all(20),
-                minScale: 0.5,
-                maxScale: 4,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Material(
-                color: Colors.transparent,
-                child: IconButton(
-                  icon: Icon(Icons.close, color: whiteColor),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Future<void> _deleteItem(BuildContext context, String itemId) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -599,21 +566,5 @@ class SummaryPage extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'donate':
-        return Colors.green[600]!;
-      case 'recyclable':
-        return Colors.blue[600]!;
-      case 'non-recyclable':
-        return Colors.orange[600]!;
-      default:
-        return Colors.grey[600]!;
-    }
-  }
 
-  String _getFormattedDate([Timestamp? timestamp]) {
-    final date = timestamp?.toDate() ?? DateTime.now();
-    return '${date.day}/${date.month}/${date.year}';
-  }
 }

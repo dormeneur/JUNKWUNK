@@ -7,6 +7,8 @@ import 'edit_profile_page.dart';
 import '../../widgets/app_bar.dart';
 
 class ProfileUI extends StatefulWidget {
+  const ProfileUI({super.key});
+
   @override
   _ProfileUIState createState() => _ProfileUIState();
 }

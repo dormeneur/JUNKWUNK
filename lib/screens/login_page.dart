@@ -6,8 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/auth_helpers.dart';
-import 'buyer/buyer_dashboard.dart';
-import 'seller/seller_dashboard.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});

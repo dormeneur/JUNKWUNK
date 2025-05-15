@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../main.dart' as main_app;
 import 'mediator/page1.dart';
 import 'mediator/page2.dart';
 import 'mediator/page3.dart';
 
 class SellerDashboard1 extends StatefulWidget {
+  const SellerDashboard1({super.key});
+
   @override
   _SellerDashboard1State createState() => _SellerDashboard1State();
 }

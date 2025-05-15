@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../widgets/item_card.dart';
 import '../../widgets/app_bar.dart';
-import '../login_page.dart';
 import 'buyer_cart.dart';
 import '../profile/profile_page.dart';
 
@@ -342,15 +341,4 @@ class BuyerDashboardState extends State<BuyerDashboard>
     return query.orderBy('timestamp', descending: true).snapshots();
   }
 
-  Stream<QuerySnapshot> _buildItemsStream() {
-    var query = _firestore
-        .collectionGroup('items')
-        .where('status', isEqualTo: 'active');
-
-    if (selectedFilter != null) {
-      query = query.where('categories', arrayContains: selectedFilter);
-    }
-
-    return query.orderBy('timestamp', descending: true).snapshots();
-  }
 }

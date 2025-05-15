@@ -52,7 +52,7 @@ class AuthHelpers {
                 .get()
             : userDoc;
 
-        final userData = latestUserDoc.data() as Map<String, dynamic>?;
+        final userData = latestUserDoc.data();
 
         // Check if user has a role and completed profile
         if (userData != null &&
