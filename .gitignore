@@ -48,5 +48,6 @@ lib/firebase_options.dart
 assets/credentials/service_account.json
 android/app/google-services.json
 lib/services/api_keys.dart
+android/app/src/main/AndroidManifest.xml
 
 web/index.html
