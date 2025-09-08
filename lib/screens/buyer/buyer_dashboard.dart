@@ -309,18 +309,30 @@ class BuyerDashboardState extends State<BuyerDashboard>
               final data = doc.data() as Map<String, dynamic>;
               final sellerId = doc.reference.parent.parent?.id;
 
-              return ItemCard(
-                itemId: doc.id,
-                sellerId: sellerId,
-                imageUrl: data['imageUrl'] ?? '',
-                title: data['title'] ?? 'Untitled Item',
-                description: data['description'] ?? 'No description',
-                categories: List<String>.from(data['categories'] ?? []),
-                itemTypes: List<String>.from(data['itemTypes'] ?? []),
-                price: (data['price'] ?? 0.0).toString(),
-                quantity: data['quantity'] ?? 1,
-                timestamp: data['timestamp'] as Timestamp?,
-                onCartUpdated: loadCartItemCount,
+              return FutureBuilder<DocumentSnapshot>(
+                future: sellerId != null 
+                  ? _firestore.collection('sellers').doc(sellerId).get() 
+                  : null,
+                builder: (context, sellerSnapshot) {
+                  final city = sellerSnapshot.hasData 
+                    ? sellerSnapshot.data!['city'] ?? 'Unknown Location'
+                    : 'Unknown Location';
+
+                  return ItemCard(
+                    itemId: doc.id,
+                    sellerId: sellerId,
+                    imageUrl: data['imageUrl'] ?? '',
+                    title: data['title'] ?? 'Untitled Item',
+                    description: data['description'] ?? 'No description',
+                    categories: List<String>.from(data['categories'] ?? []),
+                    itemTypes: List<String>.from(data['itemTypes'] ?? []),
+                    price: (data['price'] ?? 0.0).toString(),
+                    quantity: data['quantity'] ?? 1,
+                    timestamp: data['timestamp'] as Timestamp?,
+                    city: city,
+                    onCartUpdated: loadCartItemCount,
+                  );
+                },
               );
             },
           );
@@ -342,3 +354,4 @@ class BuyerDashboardState extends State<BuyerDashboard>
   }
 
 }
+

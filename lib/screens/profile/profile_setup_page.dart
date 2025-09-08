@@ -1,12 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lottie/lottie.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:app_settings/app_settings.dart';
+import '../../services/api_keys.dart';
 import '../buyer/buyer_dashboard1.dart';
 import '../seller/seller_dashboard1.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 class ProfileSetupPage extends StatefulWidget {
   final String email;
@@ -24,13 +27,15 @@ class ProfileSetupPage extends StatefulWidget {
 
 class _ProfileSetupPageState extends State<ProfileSetupPage>
     with SingleTickerProviderStateMixin {
+  final String token = const Uuid().v4();
+  List<dynamic> listOfLocations = [];
+  bool _isAutocompletePaused = false;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _locationController;
   String? _selectedRole;
   bool _isLoading = false;
-  bool _isLocationLoading = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
@@ -67,14 +72,45 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
       ),
     );
 
-    // Request location permission when the page loads
-    _requestLocationPermission();
-    _animationController.forward();
+    // Add location controller listener for autocomplete
+    _locationController.addListener(() {
+      _onLocationChange();
+    });
 
-    // Try to load user data
+    _animationController.forward();
     _tryLoadUserData();
   }
 
+  // Add these methods for handling location autocomplete
+  void _onLocationChange() {
+    if (_locationController.text.isNotEmpty && !_isAutocompletePaused) {
+      placeSuggestion(_locationController.text);
+    } else if (_locationController.text.isEmpty) {
+      setState(() {
+        listOfLocations = [];
+      });
+    }
+  }
+
+  void placeSuggestion(String input) async {
+    final String apiKey = googleApiKey; // Make sure to import api_keys.dart
+    try {
+      String baseUrl = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
+      String request = "$baseUrl?input=$input&key=$apiKey&sessiontoken=$token";
+      var response = await http.get(Uri.parse(request));
+      var data = json.decode(response.body);
+      
+      if (response.statusCode == 200) {
+        setState(() {
+          listOfLocations = data['predictions'];
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
+  }
   Future<void> _tryLoadUserData() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -115,81 +151,6 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
       print('Error in _tryLoadUserData: $e');
     }
   }
-
-  Future<void> _requestLocationPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-  }
-
-  Future<void> _getCurrentLocation() async {
-    // Show loading only on button during location fetch
-    setState(() {
-      _isLocationLoading = true;
-    });
-
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permission denied')),
-          );
-          setState(() {
-            _isLocationLoading = false;
-          });
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-                'Location permission permanently denied. Please enable in settings.'),
-            action: SnackBarAction(
-              label: 'Settings',
-              onPressed: () {
-                AppSettings.openAppSettings();
-              },
-            ),
-          ),
-        );
-        setState(() {
-          _isLocationLoading = false;
-        });
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        String address =
-            '${place.street}, ${place.locality}, ${place.administrativeArea}';
-        setState(() {
-          _locationController.text = address;
-          _isLocationLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error getting location: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error getting location: $e')),
-      );
-      setState(() {
-        _isLocationLoading = false;
-      });
-    }
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -266,8 +227,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
           } catch (firestoreError) {
             print('!!!DEBUG: Firestore error: $firestoreError');
             // Show error but continue with navigation
-            if (mounted) {
-            }
+            if (mounted) {}
           }
 
           // Set loading to false before navigation attempt
@@ -610,54 +570,101 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                                   const SizedBox(height: 16),
                                   Stack(
                                     children: [
-                                      TextFormField(
-                                        controller: _locationController,
-                                        enabled: !_isLoading,
-                                        decoration: InputDecoration(
-                                          labelText: 'Location',
-                                          prefixIcon: Icon(Icons.location_on,
-                                              color: primaryColor),
-                                          suffixIcon: _isLocationLoading
-                                              ? Container(
-                                                  width: 24,
-                                                  height: 24,
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    strokeWidth: 2,
+                                      Column(
+                                        children: [
+                                          TextFormField(
+                                            controller: _locationController,
+                                            enabled: !_isLoading,
+                                            decoration: InputDecoration(
+                                              labelText: 'Location',
+                                              prefixIcon: Icon(
+                                                  Icons.location_on,
+                                                  color: primaryColor),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: BorderSide(
                                                     color: primaryColor,
+                                                    width: 2),
+                                              ),
+                                              filled: true,
+                                              fillColor:
+                                                  accentColor.withOpacity(0.2),
+                                              labelStyle: TextStyle(
+                                                  color: primaryColor),
+                                            ),
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Please enter your location';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                          if (listOfLocations.isNotEmpty)
+                                            Container(
+                                              margin: EdgeInsets.only(top: 8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.1),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 5),
                                                   ),
-                                                )
-                                              : IconButton(
-                                                  icon: Icon(Icons.my_location,
-                                                      color: primaryColor),
-                                                  onPressed: _isLoading
-                                                      ? null
-                                                      : _getCurrentLocation,
-                                                ),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            borderSide: BorderSide(
-                                                color: primaryColor, width: 2),
-                                          ),
-                                          filled: true,
-                                          fillColor:
-                                              accentColor.withOpacity(0.2),
-                                          labelStyle:
-                                              TextStyle(color: primaryColor),
-                                        ),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your location';
-                                          }
-                                          return null;
-                                        },
+                                                ],
+                                              ),
+                                              child: ListView.builder(
+                                                shrinkWrap: true,
+                                                padding: EdgeInsets.zero,
+                                                itemCount:
+                                                    listOfLocations.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                    leading: Icon(
+                                                        Icons.location_on,
+                                                        color: primaryColor),
+                                                    title: Text(
+                                                      listOfLocations[index]
+                                                          ["description"],
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w500),
+                                                    ),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _isAutocompletePaused =
+                                                            true;
+                                                        _locationController
+                                                                .text =
+                                                            listOfLocations[
+                                                                    index]
+                                                                ["description"];
+                                                        listOfLocations = [];
+                                                      });
+
+                                                      Future.delayed(
+                                                          const Duration(
+                                                              milliseconds:
+                                                                  300), () {
+                                                        setState(() {
+                                                          _isAutocompletePaused =
+                                                              false;
+                                                        });
+                                                      });
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ],
                                   ),

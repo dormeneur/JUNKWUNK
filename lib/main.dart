@@ -10,10 +10,9 @@ import 'screens/seller/seller_dashboard1.dart';
 import 'screens/buyer/buyer_dashboard1.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Flag to track if user has manually logged out
 bool _userLoggedOut = false;
-
 void main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
 
   try {

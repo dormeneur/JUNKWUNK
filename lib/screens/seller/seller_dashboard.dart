@@ -4,6 +4,7 @@ import '../../widgets/image_uploader.dart';
 import '../../widgets/app_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'summary_page.dart';
+import 'package:geocoding/geocoding.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -189,13 +190,39 @@ class _SellerDashboardState extends State<SellerDashboard> {
         return;
       }
 
+      // Fetch user's coordinates
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      String? cityName;
+      if (userDoc.exists) {
+        final coordinates = userDoc.get('coordinates') as GeoPoint?;
+        if (coordinates != null) {
+          try {
+            final placemarks = await placemarkFromCoordinates(
+              coordinates.latitude,
+              coordinates.longitude,
+            );
+            if (placemarks.isNotEmpty) {
+              cityName = placemarks.first.locality;
+            }
+          } catch (e) {
+            print('Error getting city name: $e');
+          }
+        }
+      }
+
       final sellerDoc =
           FirebaseFirestore.instance.collection('sellers').doc(user.uid);
 
-      // Save seller info
+      // Save seller info with city
       await sellerDoc.set({
         'name': user.displayName ?? "Unknown Seller",
         'email': user.email ?? "No contact info",
+        'city': cityName,
+        'coordinates': userDoc.get('coordinates'),  // Save the original GeoPoint
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

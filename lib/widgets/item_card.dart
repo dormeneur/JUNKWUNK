@@ -15,6 +15,7 @@ class ItemCard extends StatefulWidget {
   final Timestamp? timestamp;
   final VoidCallback? onCartUpdated;
   final String status;
+  final String city;
 
   const ItemCard({
     super.key,
@@ -26,6 +27,7 @@ class ItemCard extends StatefulWidget {
     required this.categories,
     required this.itemTypes,
     required this.price,
+    required this.city,
     this.quantity = 1,
     this.timestamp,
     this.onCartUpdated,
@@ -198,9 +200,17 @@ class _ItemCardState extends State<ItemCard> {
                           const SizedBox(height: 4),
                           Text(
                             'Price: ₹${widget.price}',
-                            style: const TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.w500,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Location: ${widget.city}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
                             ),
                           ),
                         ],
