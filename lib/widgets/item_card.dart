@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../utils/design_constants.dart';
 
 class ItemCard extends StatefulWidget {
@@ -17,6 +18,7 @@ class ItemCard extends StatefulWidget {
   final VoidCallback? onCartUpdated;
   final String status;
   final String city;
+  final ValueNotifier<int>? refreshTrigger;
 
   const ItemCard({
     super.key,
@@ -33,6 +35,7 @@ class ItemCard extends StatefulWidget {
     this.timestamp,
     this.onCartUpdated,
     this.status = 'active',
+    this.refreshTrigger,
   });
 
   @override
@@ -41,11 +44,63 @@ class ItemCard extends StatefulWidget {
 
 class _ItemCardState extends State<ItemCard> {
   int _selectedQuantity = 1;
+  int? _availableQuantity;
+  bool _isLoadingQuantity = true;
+  bool _isAddingToCart = false;
 
   @override
   void initState() {
     super.initState();
     _selectedQuantity = 1;
+    _loadAvailableQuantity();
+    widget.refreshTrigger?.addListener(_onRefresh);
+  }
+
+  void _onRefresh() {
+    _loadAvailableQuantity();
+  }
+
+  @override
+  void dispose() {
+    widget.refreshTrigger?.removeListener(_onRefresh);
+    super.dispose();
+  }
+
+  Future<void> _loadAvailableQuantity() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null || widget.sellerId == null) {
+      setState(() {
+        _availableQuantity = widget.quantity;
+        _isLoadingQuantity = false;
+      });
+      return;
+    }
+
+    try {
+      // Get total quantity already in cart for this item
+      final cartSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cart')
+          .where('itemId', isEqualTo: widget.itemId)
+          .where('sellerId', isEqualTo: widget.sellerId)
+          .get();
+
+      int quantityInCart = 0;
+      for (var doc in cartSnapshot.docs) {
+        quantityInCart += (doc.data()['quantity'] ?? 0) as int;
+      }
+
+      setState(() {
+        _availableQuantity = widget.quantity - quantityInCart;
+        _isLoadingQuantity = false;
+      });
+    } catch (e) {
+      setState(() {
+        _availableQuantity = widget.quantity;
+        _isLoadingQuantity = false;
+      });
+    }
   }
 
   Future<void> _addToCart(
@@ -53,43 +108,146 @@ class _ItemCardState extends State<ItemCard> {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
-    await FirebaseFirestore.instance
+    setState(() {
+      _isAddingToCart = true;
+    });
+
+    // Check available quantity
+    if (_availableQuantity != null && _availableQuantity! <= 0) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('This item is out of stock!'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppBorders.borderRadiusMD,
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check if trying to add more than available
+    if (_availableQuantity != null && _selectedQuantity > _availableQuantity!) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Only $_availableQuantity item(s) available!'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppBorders.borderRadiusMD,
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check if item already exists in cart
+    final existingCartItems = await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
         .collection('cart')
-        .add({
-      'sellerId': sellerId,
-      'itemId': itemId,
-      'timestamp': Timestamp.now(),
-      'title': widget.title,
-      'description': widget.description,
-      'imageUrl': widget.imageUrl,
-      'categories': widget.categories,
-      'itemTypes': widget.itemTypes,
-      'price': widget.price,
-      'quantity': _selectedQuantity,
-      'status': widget.status,
-    });
+        .where('itemId', isEqualTo: itemId)
+        .where('sellerId', isEqualTo: sellerId)
+        .get();
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added $_selectedQuantity item(s) to cart!'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: AppBorders.borderRadiusMD,
+    if (existingCartItems.docs.isNotEmpty) {
+      // Item already exists, update quantity
+      final existingDoc = existingCartItems.docs.first;
+      final existingQuantity = existingDoc.data()['quantity'] ?? 0;
+      final newQuantity = existingQuantity + _selectedQuantity;
+
+      // Check if new quantity exceeds available quantity
+      if (newQuantity > widget.quantity) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Cannot add more than ${widget.quantity} items!'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: AppBorders.borderRadiusMD,
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      await existingDoc.reference.update({
+        'quantity': newQuantity,
+        'timestamp': Timestamp.now(),
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Updated cart! Now you have $newQuantity item(s)'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppBorders.borderRadiusMD,
+            ),
           ),
-        ),
-      );
-      widget.onCartUpdated?.call();
+        );
+
+        // Reload available quantity and notify parent
+        _loadAvailableQuantity();
+        widget.onCartUpdated?.call();
+      }
+    } else {
+      // Add new item to cart
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cart')
+          .add({
+        'sellerId': sellerId,
+        'itemId': itemId,
+        'timestamp': Timestamp.now(),
+        'title': widget.title,
+        'description': widget.description,
+        'imageUrl': widget.imageUrl,
+        'categories': widget.categories,
+        'itemTypes': widget.itemTypes,
+        'price': widget.price,
+        'quantity': _selectedQuantity,
+        'status': widget.status,
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added $_selectedQuantity item(s) to cart!'),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppBorders.borderRadiusMD,
+            ),
+          ),
+        );
+
+        // Reload available quantity and notify parent
+        _loadAvailableQuantity();
+        widget.onCartUpdated?.call();
+      }
     }
+
+    // Reset selected quantity
+    setState(() {
+      _selectedQuantity = 1;
+      _isAddingToCart = false;
+    });
   }
 
   void _updateQuantity(int amount) {
     setState(() {
-      _selectedQuantity =
-          (_selectedQuantity + amount).clamp(1, widget.quantity);
+      final maxQuantity = _availableQuantity ?? widget.quantity;
+      _selectedQuantity = (_selectedQuantity + amount).clamp(1, maxQuantity);
     });
   }
 
@@ -153,7 +311,12 @@ class _ItemCardState extends State<ItemCard> {
                       vertical: AppSpacing.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.9),
+                      color: _isLoadingQuantity
+                          ? AppColors.primary.withValues(alpha: 0.9)
+                          : (_availableQuantity != null &&
+                                  _availableQuantity! <= 0
+                              ? Colors.red.withValues(alpha: 0.9)
+                              : AppColors.primary.withValues(alpha: 0.9)),
                       borderRadius: AppBorders.borderRadiusMD,
                       boxShadow: [
                         BoxShadow(
@@ -167,13 +330,20 @@ class _ItemCardState extends State<ItemCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.inventory_2,
+                          _availableQuantity != null && _availableQuantity! <= 0
+                              ? Icons.cancel
+                              : Icons.inventory_2,
                           color: Colors.white,
                           size: 16,
                         ),
                         SizedBox(width: 4),
                         Text(
-                          '${widget.quantity} available',
+                          _isLoadingQuantity
+                              ? 'Loading...'
+                              : (_availableQuantity != null &&
+                                      _availableQuantity! <= 0
+                                  ? 'Out of Stock'
+                                  : '${_availableQuantity ?? widget.quantity} available'),
                           style: const TextStyle(
                             color: AppColors.white,
                             fontWeight: AppTypography.bold,
@@ -288,7 +458,8 @@ class _ItemCardState extends State<ItemCard> {
                     children: widget.itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                        backgroundColor:
+                            AppColors.primary.withValues(alpha: 0.7),
                         labelStyle: const TextStyle(
                           color: AppColors.white,
                           fontSize: AppTypography.fontSizeSM,
@@ -315,7 +486,9 @@ class _ItemCardState extends State<ItemCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Quantity selector
-                    if (widget.quantity > 1)
+                    if (widget.quantity > 1 &&
+                        !_isLoadingQuantity &&
+                        (_availableQuantity == null || _availableQuantity! > 0))
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.secondary,
@@ -349,7 +522,8 @@ class _ItemCardState extends State<ItemCard> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.add, size: 18),
-                              onPressed: _selectedQuantity < widget.quantity
+                              onPressed: _selectedQuantity <
+                                      (_availableQuantity ?? widget.quantity)
                                   ? () => _updateQuantity(1)
                                   : null,
                               color: AppColors.primary,
@@ -363,14 +537,49 @@ class _ItemCardState extends State<ItemCard> {
                     else
                       SizedBox(),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        if (widget.sellerId == null) return;
-                        _addToCart(context, widget.sellerId!, widget.itemId);
-                      },
-                      icon: const Icon(Icons.add_shopping_cart, size: 18),
-                      label: const Text('Add to Cart'),
+                      onPressed: (_isLoadingQuantity ||
+                              _isAddingToCart ||
+                              (_availableQuantity != null &&
+                                  _availableQuantity! <= 0))
+                          ? null
+                          : () {
+                              if (widget.sellerId == null) return;
+                              _addToCart(
+                                  context, widget.sellerId!, widget.itemId);
+                            },
+                      icon: _isAddingToCart
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.white,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              (_availableQuantity != null &&
+                                      _availableQuantity! <= 0)
+                                  ? Icons.block
+                                  : Icons.add_shopping_cart,
+                              size: 18,
+                            ),
+                      label: Text(
+                        _isAddingToCart
+                            ? 'Adding...'
+                            : (_isLoadingQuantity
+                                ? 'Loading...'
+                                : (_availableQuantity != null &&
+                                        _availableQuantity! <= 0
+                                    ? 'Out of Stock'
+                                    : 'Add to Cart')),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: (_availableQuantity != null &&
+                                _availableQuantity! <= 0)
+                            ? Colors.grey
+                            : AppColors.primary,
                         foregroundColor: AppColors.white,
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -499,7 +708,8 @@ class _ItemCardState extends State<ItemCard> {
                                       vertical: AppSpacing.xs,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.1),
                                       borderRadius: AppBorders.borderRadiusSM,
                                     ),
                                     child: Text(
@@ -564,7 +774,8 @@ class _ItemCardState extends State<ItemCard> {
                     children: itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                        backgroundColor:
+                            AppColors.primary.withValues(alpha: 0.7),
                         labelStyle: const TextStyle(
                           color: AppColors.white,
                           fontSize: AppTypography.fontSizeMD,

@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import '/screens/buyer/item_location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '/screens/buyer/item_location.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -230,6 +231,31 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
       for (var itemId in selectedItems) {
         final item = cartItems.firstWhere((item) => item.id == itemId);
 
+        // Get the current item quantity from seller's collection
+        final itemRef = _firestore
+            .collection('sellers')
+            .doc(item.sellerId)
+            .collection('items')
+            .doc(item.itemId);
+
+        final itemDoc = await itemRef.get();
+        if (itemDoc.exists) {
+          final currentQuantity = itemDoc.data()?['quantity'] ?? 0;
+          final newQuantity = currentQuantity - item.quantity;
+
+          // Update the item quantity or set status to inactive if out of stock
+          if (newQuantity <= 0) {
+            batch.update(itemRef, {
+              'quantity': 0,
+              'status': 'inactive', // Mark as inactive when out of stock
+            });
+          } else {
+            batch.update(itemRef, {
+              'quantity': newQuantity,
+            });
+          }
+        }
+
         // Create purchase record
         final purchaseRef = _firestore.collection('purchases').doc();
         batch.set(purchaseRef, item.toPurchaseMap(userId!));
@@ -254,7 +280,8 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
 
       _showSuccessSnackbar('Checkout successful!');
     } catch (e) {
-      _showErrorSnackbar('Error processing checkout');
+      debugPrint('Error processing checkout: $e');
+      _showErrorSnackbar('Error processing checkout: ${e.toString()}');
     } finally {
       _isProcessing = false;
     }
@@ -515,6 +542,31 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 color: primaryColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Icon(Icons.shopping_bag_outlined, size: 16, color: primaryColor),
+            const SizedBox(width: 4),
+            Text(
+              'Quantity: ${item.quantity}',
+              style: TextStyle(
+                color: primaryColor,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(Icons.currency_rupee, size: 16, color: primaryColor),
+            Text(
+              '₹${item.price.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: primaryColor,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],

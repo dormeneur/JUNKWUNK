@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../widgets/item_card.dart';
-import '../../widgets/app_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
 import '../../utils/design_constants.dart';
-import 'buyer_cart.dart';
+import '../../widgets/app_bar.dart';
+import '../../widgets/item_card.dart';
 import '../profile/profile_page.dart';
+import 'buyer_cart.dart';
 
 class BuyerDashboard extends StatefulWidget {
   const BuyerDashboard({super.key});
@@ -15,12 +16,11 @@ class BuyerDashboard extends StatefulWidget {
 }
 
 class BuyerDashboardState extends State<BuyerDashboard>
-    with SingleTickerProviderStateMixin {
-  String? selectedFilter;
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  int cartItemCount = 0;
+  final ValueNotifier<int> cartItemCount = ValueNotifier<int>(0);
+  final ValueNotifier<int> refreshTrigger = ValueNotifier<int>(0);
   late TabController _tabController;
-  // Using design system colors
   final PageController _pageController = PageController();
 
   @override
@@ -35,22 +35,6 @@ class BuyerDashboardState extends State<BuyerDashboard>
           duration: Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
-        setState(() {
-          switch (_tabController.index) {
-            case 0:
-              selectedFilter = null;
-              break;
-            case 1:
-              selectedFilter = 'Donate';
-              break;
-            case 2:
-              selectedFilter = 'Recyclable';
-              break;
-            case 3:
-              selectedFilter = 'Non-Recyclable';
-              break;
-          }
-        });
       }
     });
   }
@@ -59,27 +43,13 @@ class BuyerDashboardState extends State<BuyerDashboard>
   void dispose() {
     _tabController.dispose();
     _pageController.dispose();
+    cartItemCount.dispose();
+    refreshTrigger.dispose();
     super.dispose();
   }
 
   void _onPageChanged(int page) {
     _tabController.animateTo(page);
-    setState(() {
-      switch (page) {
-        case 0:
-          selectedFilter = null;
-          break;
-        case 1:
-          selectedFilter = 'Donate';
-          break;
-        case 2:
-          selectedFilter = 'Recyclable';
-          break;
-        case 3:
-          selectedFilter = 'Non-Recyclable';
-          break;
-      }
-    });
   }
 
   Future<void> loadCartItemCount() async {
@@ -90,14 +60,25 @@ class BuyerDashboardState extends State<BuyerDashboard>
           .doc(userId)
           .collection('cart')
           .get();
-      setState(() {
-        cartItemCount = cartSnapshot.docs.length;
-      });
+
+      // Calculate total items considering quantities
+      int totalItems = 0;
+      for (var doc in cartSnapshot.docs) {
+        final data = doc.data();
+        totalItems += (data['quantity'] ?? 1) as int;
+      }
+
+      // Update ValueNotifier instead of calling setState
+      cartItemCount.value = totalItems;
     }
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppColors.secondary,
       appBar: AppBarWidget(
@@ -123,42 +104,89 @@ class BuyerDashboardState extends State<BuyerDashboard>
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => BuyerCart()),
-                  ).then((_) => loadCartItemCount());
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          BuyerCart(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(begin: begin, end: end)
+                            .chain(CurveTween(curve: curve));
+                        return SlideTransition(
+                          position: animation.drive(tween),
+                          child: child,
+                        );
+                      },
+                      transitionDuration: const Duration(milliseconds: 250),
+                    ),
+                  ).then((_) {
+                    loadCartItemCount();
+                    refreshTrigger.value++; // Trigger refresh of item cards
+                  });
                 },
               ),
-              if (cartItemCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
+              ValueListenableBuilder<int>(
+                valueListenable: cartItemCount,
+                builder: (context, itemCount, child) {
+                  if (itemCount <= 0) return const SizedBox.shrink();
+
+                  return Positioned(
+                    right: 8,
+                    top: 8,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.8, end: 1.0),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.elasticOut,
+                      builder: (context, scale, child) {
+                        return Transform.scale(
+                          scale: scale,
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        key: ValueKey(itemCount),
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 2,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      '$cartItemCount',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: AppTypography.fontSizeXS,
-                        fontWeight: AppTypography.bold,
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) {
+                            return ScaleTransition(
+                              scale: animation,
+                              child: child,
+                            );
+                          },
+                          child: Text(
+                            '$itemCount',
+                            key: ValueKey(itemCount),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: AppTypography.fontSizeXS,
+                              fontWeight: AppTypography.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(width: 8),
@@ -219,20 +247,6 @@ class BuyerDashboardState extends State<BuyerDashboard>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {});
-        },
-        backgroundColor: AppColors.primary,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppBorders.borderRadiusLG,
-        ),
-        child: const Icon(
-          Icons.refresh_rounded,
-          color: AppColors.white,
-        ),
-      ),
     );
   }
 
@@ -253,90 +267,109 @@ class BuyerDashboardState extends State<BuyerDashboard>
         0,
       ),
       padding: AppSpacing.paddingVerticalMD,
-      child: StreamBuilder<QuerySnapshot>(
-        stream: _buildItemsStreamFiltered(filterValue),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                strokeWidth: 3,
-              ),
-            );
-          }
+      child: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh cart count
+          await loadCartItemCount();
+          // Small delay for smooth UX
+          await Future.delayed(const Duration(milliseconds: 300));
+        },
+        color: AppColors.primary,
+        backgroundColor: AppColors.white,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _buildItemsStreamFiltered(filterValue),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  strokeWidth: 3,
+                ),
+              );
+            }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return ListView(
                 children: [
-                  const Icon(
-                    Icons.inventory_2_outlined,
-                    size: 80,
-                    color: AppColors.secondary,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Text(
-                    'No items available',
-                    style: TextStyle(
-                      fontSize: AppTypography.fontSizeXL,
-                      color: AppColors.primary,
-                      fontWeight: AppTypography.medium,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  const Text(
-                    'Check back later for new products',
-                    style: TextStyle(
-                      fontSize: AppTypography.fontSizeMD,
-                      color: AppColors.textSecondary,
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.inventory_2_outlined,
+                            size: 80,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          const Text(
+                            'No items available',
+                            style: TextStyle(
+                              fontSize: AppTypography.fontSizeXL,
+                              color: AppColors.primary,
+                              fontWeight: AppTypography.medium,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          const Text(
+                            'Check back later for new products',
+                            style: TextStyle(
+                              fontSize: AppTypography.fontSizeMD,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              final doc = snapshot.data!.docs[index];
-              final data = doc.data() as Map<String, dynamic>;
-              final sellerId = doc.reference.parent.parent?.id;
-
-              return FutureBuilder<DocumentSnapshot>(
-                future: sellerId != null 
-                  ? _firestore.collection('sellers').doc(sellerId).get() 
-                  : null,
-                builder: (context, sellerSnapshot) {
-                  final city = sellerSnapshot.hasData 
-                    ? sellerSnapshot.data!['city'] ?? 'Unknown Location'
-                    : 'Unknown Location';
-
-                  return ItemCard(
-                    itemId: doc.id,
-                    sellerId: sellerId,
-                    imageUrl: data['imageUrl'] ?? '',
-                    title: data['title'] ?? 'Untitled Item',
-                    description: data['description'] ?? 'No description',
-                    categories: List<String>.from(data['categories'] ?? []),
-                    itemTypes: List<String>.from(data['itemTypes'] ?? []),
-                    price: (data['price'] ?? 0.0).toString(),
-                    quantity: data['quantity'] ?? 1,
-                    timestamp: data['timestamp'] as Timestamp?,
-                    city: city,
-                    onCartUpdated: loadCartItemCount,
-                  );
-                },
               );
-            },
-          );
-        },
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final doc = snapshot.data!.docs[index];
+                final data = doc.data() as Map<String, dynamic>;
+                final sellerId = doc.reference.parent.parent?.id;
+
+                return FutureBuilder<DocumentSnapshot>(
+                  future: sellerId != null
+                      ? _firestore.collection('sellers').doc(sellerId).get()
+                      : null,
+                  builder: (context, sellerSnapshot) {
+                    final city = sellerSnapshot.hasData
+                        ? sellerSnapshot.data!['city'] ?? 'Unknown Location'
+                        : 'Unknown Location';
+
+                    return ItemCard(
+                      key: ValueKey('${doc.id}-${refreshTrigger.value}'),
+                      itemId: doc.id,
+                      sellerId: sellerId,
+                      imageUrl: data['imageUrl'] ?? '',
+                      title: data['title'] ?? 'Untitled Item',
+                      description: data['description'] ?? 'No description',
+                      categories: List<String>.from(data['categories'] ?? []),
+                      itemTypes: List<String>.from(data['itemTypes'] ?? []),
+                      price: (data['price'] ?? 0.0).toString(),
+                      quantity: data['quantity'] ?? 1,
+                      timestamp: data['timestamp'] as Timestamp?,
+                      city: city,
+                      onCartUpdated: loadCartItemCount,
+                      refreshTrigger: refreshTrigger,
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -352,6 +385,4 @@ class BuyerDashboardState extends State<BuyerDashboard>
 
     return query.orderBy('timestamp', descending: true).snapshots();
   }
-
 }
-
