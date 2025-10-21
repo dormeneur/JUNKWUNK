@@ -80,7 +80,8 @@ class BuyerDashboardState extends State<BuyerDashboard>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: AppColors.secondary,
+      backgroundColor:
+          const Color(0xFFD4E7C5), // Soft sage green - matches profile and cart
       appBar: AppBarWidget(
         title: 'Browse Products',
         leading: IconButton(
@@ -251,125 +252,111 @@ class BuyerDashboardState extends State<BuyerDashboard>
   }
 
   Widget _buildItemsView(String? filterValue) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(AppBorders.radiusXL),
-          topRight: Radius.circular(AppBorders.radiusXL),
-        ),
-        boxShadow: AppShadows.shadow2,
-      ),
-      margin: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        0,
-      ),
-      padding: AppSpacing.paddingVerticalMD,
-      child: RefreshIndicator(
-        onRefresh: () async {
-          // Refresh cart count
-          await loadCartItemCount();
-          // Small delay for smooth UX
-          await Future.delayed(const Duration(milliseconds: 300));
-        },
-        color: AppColors.primary,
-        backgroundColor: AppColors.white,
-        child: StreamBuilder<QuerySnapshot>(
-          stream: _buildItemsStreamFiltered(filterValue),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  strokeWidth: 3,
-                ),
-              );
-            }
+    // Unified sage green color throughout
+    const cardColor = Color(0xFFD4E7C5);
 
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Refresh cart count
+        await loadCartItemCount();
+        // Small delay for smooth UX
+        await Future.delayed(const Duration(milliseconds: 300));
+      },
+      color: AppColors.primary,
+      backgroundColor: cardColor,
+      child: StreamBuilder<QuerySnapshot>(
+        stream: _buildItemsStreamFiltered(filterValue),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                strokeWidth: 3,
+              ),
+            );
+          }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return ListView(
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.inventory_2_outlined,
-                            size: 80,
-                            color: AppColors.secondary,
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return ListView(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 80,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        const Text(
+                          'No items available',
+                          style: TextStyle(
+                            fontSize: AppTypography.fontSizeXL,
+                            color: AppColors.primary,
+                            fontWeight: AppTypography.medium,
                           ),
-                          const SizedBox(height: AppSpacing.md),
-                          const Text(
-                            'No items available',
-                            style: TextStyle(
-                              fontSize: AppTypography.fontSizeXL,
-                              color: AppColors.primary,
-                              fontWeight: AppTypography.medium,
-                            ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        const Text(
+                          'Check back later for new products',
+                          style: TextStyle(
+                            fontSize: AppTypography.fontSizeMD,
+                            color: AppColors.textSecondary,
                           ),
-                          const SizedBox(height: AppSpacing.sm),
-                          const Text(
-                            'Check back later for new products',
-                            style: TextStyle(
-                              fontSize: AppTypography.fontSizeMD,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final doc = snapshot.data!.docs[index];
-                final data = doc.data() as Map<String, dynamic>;
-                final sellerId = doc.reference.parent.parent?.id;
-
-                return FutureBuilder<DocumentSnapshot>(
-                  future: sellerId != null
-                      ? _firestore.collection('sellers').doc(sellerId).get()
-                      : null,
-                  builder: (context, sellerSnapshot) {
-                    final city = sellerSnapshot.hasData
-                        ? sellerSnapshot.data!['city'] ?? 'Unknown Location'
-                        : 'Unknown Location';
-
-                    return ItemCard(
-                      key: ValueKey('${doc.id}-${refreshTrigger.value}'),
-                      itemId: doc.id,
-                      sellerId: sellerId,
-                      imageUrl: data['imageUrl'] ?? '',
-                      title: data['title'] ?? 'Untitled Item',
-                      description: data['description'] ?? 'No description',
-                      categories: List<String>.from(data['categories'] ?? []),
-                      itemTypes: List<String>.from(data['itemTypes'] ?? []),
-                      price: (data['price'] ?? 0.0).toString(),
-                      quantity: data['quantity'] ?? 1,
-                      timestamp: data['timestamp'] as Timestamp?,
-                      city: city,
-                      onCartUpdated: loadCartItemCount,
-                      refreshTrigger: refreshTrigger,
-                    );
-                  },
-                );
-              },
+                ),
+              ],
             );
-          },
-        ),
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final doc = snapshot.data!.docs[index];
+              final data = doc.data() as Map<String, dynamic>;
+              final sellerId = doc.reference.parent.parent?.id;
+
+              return FutureBuilder<DocumentSnapshot>(
+                future: sellerId != null
+                    ? _firestore.collection('sellers').doc(sellerId).get()
+                    : null,
+                builder: (context, sellerSnapshot) {
+                  final city = sellerSnapshot.hasData
+                      ? sellerSnapshot.data!['city'] ?? 'Unknown Location'
+                      : 'Unknown Location';
+
+                  return ItemCard(
+                    key: ValueKey('${doc.id}-${refreshTrigger.value}'),
+                    itemId: doc.id,
+                    sellerId: sellerId,
+                    imageUrl: data['imageUrl'] ?? '',
+                    title: data['title'] ?? 'Untitled Item',
+                    description: data['description'] ?? 'No description',
+                    categories: List<String>.from(data['categories'] ?? []),
+                    itemTypes: List<String>.from(data['itemTypes'] ?? []),
+                    price: (data['price'] ?? 0.0).toString(),
+                    quantity: data['quantity'] ?? 1,
+                    timestamp: data['timestamp'] as Timestamp?,
+                    city: city,
+                    onCartUpdated: loadCartItemCount,
+                    refreshTrigger: refreshTrigger,
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

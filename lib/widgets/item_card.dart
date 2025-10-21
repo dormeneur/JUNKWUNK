@@ -124,7 +124,8 @@ class _ItemCardState extends State<ItemCard> {
     // Check if trying to add more than available
     if (_availableQuantity != null && _selectedQuantity > _availableQuantity!) {
       if (context.mounted) {
-        CustomToast.showWarning(context, 'Only $_availableQuantity item(s) available!');
+        CustomToast.showWarning(
+            context, 'Only $_availableQuantity item(s) available!');
       }
       return;
     }
@@ -147,7 +148,8 @@ class _ItemCardState extends State<ItemCard> {
       // Check if new quantity exceeds available quantity
       if (newQuantity > widget.quantity) {
         if (context.mounted) {
-          CustomToast.showError(context, 'Cannot add more than ${widget.quantity} items!');
+          CustomToast.showError(
+              context, 'Cannot add more than ${widget.quantity} items!');
         }
         return;
       }
@@ -158,7 +160,8 @@ class _ItemCardState extends State<ItemCard> {
       });
 
       if (context.mounted) {
-        CustomToast.showSuccess(context, 'Updated cart! Now you have $newQuantity item(s)');
+        CustomToast.showSuccess(
+            context, 'Updated cart! Now you have $newQuantity item(s)');
 
         // Reload available quantity and notify parent
         _loadAvailableQuantity();
@@ -185,7 +188,8 @@ class _ItemCardState extends State<ItemCard> {
       });
 
       if (context.mounted) {
-        CustomToast.showSuccess(context, 'Added $_selectedQuantity item(s) to cart!');
+        CustomToast.showSuccess(
+            context, 'Added $_selectedQuantity item(s) to cart!');
 
         // Reload available quantity and notify parent
         _loadAvailableQuantity();
@@ -209,10 +213,13 @@ class _ItemCardState extends State<ItemCard> {
 
   @override
   Widget build(BuildContext context) {
+    const cardColor = Color(0xFFFFFFFF);
+
     return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.08),
+      color: cardColor,
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(
         borderRadius: AppBorders.borderRadiusLG,
       ),
@@ -379,22 +386,30 @@ class _ItemCardState extends State<ItemCard> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
-                    children: widget.categories.map((category) {
-                      return Chip(
-                        label: Text(category),
-                        backgroundColor: _getCategoryColor(category),
-                        labelStyle: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: AppTypography.fontSizeSM,
-                          fontWeight: AppTypography.medium,
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: EdgeInsets.zero,
-                      );
-                    }).toList(),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: widget.categories.map((category) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.sm),
+                          child: Chip(
+                            label: Text(category),
+                            backgroundColor: _getCategoryColor(category),
+                            labelStyle: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 11,
+                              fontWeight: AppTypography.bold,
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ],
                 if (widget.itemTypes.isNotEmpty) ...[
@@ -414,20 +429,31 @@ class _ItemCardState extends State<ItemCard> {
                     children: widget.itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor:
-                            AppColors.primary.withValues(alpha: 0.7),
+                        backgroundColor: AppColors.greyDark,
                         labelStyle: const TextStyle(
                           color: AppColors.white,
-                          fontSize: AppTypography.fontSizeSM,
-                          fontWeight: AppTypography.medium,
+                          fontSize: 11,
+                          fontWeight: AppTypography.bold,
                         ),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: EdgeInsets.zero,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
                       );
                     }).toList(),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.md),
+                const Text(
+                  'Description:',
+                  style: TextStyle(
+                    fontSize: AppTypography.fontSizeSM,
+                    fontWeight: AppTypography.medium,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   widget.description,
                   style: const TextStyle(
@@ -447,8 +473,12 @@ class _ItemCardState extends State<ItemCard> {
                         (_availableQuantity == null || _availableQuantity! > 0))
                       Container(
                         decoration: BoxDecoration(
-                          color: AppColors.secondary,
+                          color: AppColors.white,
                           borderRadius: AppBorders.borderRadiusMD,
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -465,14 +495,14 @@ class _ItemCardState extends State<ItemCard> {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.xs,
+                                horizontal: AppSpacing.sm,
                               ),
                               child: Text(
                                 '$_selectedQuantity',
                                 style: const TextStyle(
                                   fontWeight: AppTypography.bold,
                                   color: AppColors.primary,
-                                  fontSize: AppTypography.fontSizeMD,
+                                  fontSize: AppTypography.fontSizeLG,
                                 ),
                               ),
                             ),
@@ -621,6 +651,7 @@ class _ItemCardState extends State<ItemCard> {
           shape: RoundedRectangleBorder(
             borderRadius: AppBorders.borderRadiusXL,
           ),
+          backgroundColor: const Color(0xFFFFFFFF), // White - matches card
           child: Container(
             width: double.infinity,
             padding: AppSpacing.paddingLG,

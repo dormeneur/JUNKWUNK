@@ -30,10 +30,12 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   final List<AnimationController> _itemControllers = [];
 
   // Colors
-  final Color primaryColor = const Color(0xFF371F97);
-  final Color lightPurple = const Color(0xFFEEE8F6);
-  final Color whiteColor = const Color(0xFFFFFFFF);
-  final Color blackColor = const Color(0xFF000000);
+  final Color primaryColor = const Color(0xFF132a13); // Dark green
+  final Color lightAccent = const Color(
+      0xFFD4E7C5); // Soft sage green - complements dark green beautifully
+  final Color accentColor = const Color(0xFF90a955); // Moss green
+  final Color whiteColor = const Color(0xFFFFFFFF); // White
+  final Color blackColor = const Color(0xFF212121); // Near black
 
   @override
   void initState() {
@@ -299,7 +301,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: lightPurple,
+      backgroundColor: lightAccent,
       appBar: AppBar(
         title: const Text(
           'My Cart',
@@ -379,8 +381,8 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: isSelected
-              ? const Color.fromARGB(255, 121, 89, 219)
-              : Colors.transparent, // Darker purple
+              ? const Color(0xFF4f772d)
+              : Colors.transparent, // Fern green
           width: 3.0, // Increased border width
         ),
       ),
@@ -492,7 +494,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         errorBuilder: (context, error, stackTrace) => Container(
           width: 80,
           height: 80,
-          color: lightPurple,
+          color: lightAccent,
           child: Icon(Icons.image_not_supported, color: primaryColor),
         ),
       ),

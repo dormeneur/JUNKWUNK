@@ -16,10 +16,10 @@ class SummaryPage extends StatelessWidget {
   final String? title;
 
   // Custom color palette
-  static const Color primaryColor = Color(0xFF371F97);
-  static const Color whiteColor = Color(0xFFFFFFFF);
-  static const Color blackColor = Color(0xFF000000);
-  static const Color greyColor = Color(0xFFF5F5F5);
+  static const Color primaryColor = Color(0xFF132a13); // Dark green
+  static const Color whiteColor = Color(0xFFFFFFFF); // White
+  static const Color blackColor = Color(0xFF212121); // Near black
+  static const Color greyColor = Color(0xFFecf39e); // Mindaro
 
   const SummaryPage.viewAll({super.key})
       : imageUrl = null,
@@ -513,15 +513,16 @@ class SummaryPage extends StatelessWidget {
     switch (category.toLowerCase()) {
       case 'donate':
         categoryIcon = Icons.volunteer_activism;
-        categoryColor = Colors.green[600]!;
+        categoryColor = const Color(0xFF4f772d); // Fern green for Donate
         break;
       case 'recyclable':
         categoryIcon = Icons.recycling;
-        categoryColor = Colors.blue[600]!;
+        categoryColor = const Color(0xFF90a955); // Moss green for Recyclable
         break;
       case 'non-recyclable':
         categoryIcon = Icons.delete_outline;
-        categoryColor = Colors.orange[600]!;
+        categoryColor =
+            const Color(0xFF31572c); // Hunter green for Non-recyclable
         break;
       default:
         categoryIcon = Icons.category;

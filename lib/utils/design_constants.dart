@@ -4,41 +4,41 @@ import 'package:flutter/material.dart';
 /// This file contains all UI constants to ensure visual consistency across the app
 
 class AppColors {
-  // Primary Colors
-  static const Color primary = Color(0xFF371f97); // Deep purple
-  static const Color primaryLight = Color(0xFF5A3EC4);
-  static const Color primaryDark = Color(0xFF2A186B);
+  // Green palette
+  static const Color primary = Color(0xFF132a13); // Dark green
+  static const Color primaryLight = Color(0xFF31572c); // Hunter green
+  static const Color primaryDark = Color(0xFF132a13); // Dark green
   
   // Secondary Colors
-  static const Color secondary = Color(0xFFEEE8F6); // Light lavender
-  static const Color secondaryLight = Color(0xFFF5F5F5);
+  static const Color secondary = Color(0xFFecf39e); // Mindaro (light accent)
+  static const Color secondaryLight = Color(0xFFecf39e); // Mindaro
   
   // Accent Colors
-  static const Color accent = Color(0xFF371f97);
+  static const Color accent = Color(0xFF90a955); // Moss green
   
   // Status Colors
-  static const Color success = Color(0xFF4CAF50);
-  static const Color error = Color(0xFFF44336);
-  static const Color warning = Color(0xFFFF9800);
-  static const Color info = Color(0xFF2196F3);
+  static const Color success = Color(0xFF4f772d); // Fern green
+  static const Color error = Color(0xFFE53935);
+  static const Color warning = Color(0xFFFFA726);
+  static const Color info = Color(0xFF31572c); // Hunter green
   
   // Category Colors
-  static const Color donate = Color(0xFF4CAF50);
-  static const Color recyclable = Color(0xFF2196F3);
-  static const Color nonRecyclable = Color(0xFFFF9800);
+  static const Color donate = Color(0xFF4f772d); // Fern green
+  static const Color recyclable = Color(0xFF90a955); // Moss green
+  static const Color nonRecyclable = Color(0xFF31572c); // Hunter green
   
   // Neutral Colors
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF000000);
-  static const Color grey = Color(0xFF9E9E9E);
-  static const Color greyLight = Color(0xFFE0E0E0);
-  static const Color greyDark = Color(0xFF616161);
+  static const Color white = Color(0xFFFFFFFF); // Pure white
+  static const Color black = Color(0xFF212121); // Near black
+  static const Color grey = Color(0xFF9E9E9E); // Medium grey
+  static const Color greyLight = Color(0xFFF5F5F5); // Light grey
+  static const Color greyDark = Color(0xFF616161); // Dark grey
   
   // Text Colors
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
-  static const Color textHint = Color(0xFF9E9E9E);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF212121); // Near black
+  static const Color textSecondary = Color(0xFF757575); // Medium grey
+  static const Color textHint = Color(0xFF9E9E9E); // Light grey
+  static const Color textOnPrimary = Color(0xFFFFFFFF); // White on dark green
 }
 
 class AppSpacing {

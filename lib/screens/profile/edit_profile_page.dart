@@ -105,7 +105,8 @@ class EditProfilePageState extends State<EditProfilePage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!mounted) return;
-      CustomToast.showError(context, 'Location services are disabled. Please enable location services.');
+      CustomToast.showError(context,
+          'Location services are disabled. Please enable location services.');
       return;
     }
 
@@ -114,14 +115,16 @@ class EditProfilePageState extends State<EditProfilePage> {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         if (!mounted) return;
-        CustomToast.showWarning(context, 'Location permissions are denied. Please enable them in the app settings.');
+        CustomToast.showWarning(context,
+            'Location permissions are denied. Please enable them in the app settings.');
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
       if (!mounted) return;
-      CustomToast.showWarning(context, 'Location permissions are permanently denied. Please enable them in the app settings.');
+      CustomToast.showWarning(context,
+          'Location permissions are permanently denied. Please enable them in the app settings.');
       return;
     }
 
@@ -148,6 +151,8 @@ class EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:
+          const Color(0xFFD4E7C5), // Soft sage green - matches profile page
       extendBodyBehindAppBar:
           true, // This allows content to flow behind the AppBar
       appBar: PreferredSize(
@@ -157,13 +162,14 @@ class EditProfilePageState extends State<EditProfilePage> {
             "Edit Profile",
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF132a13), // Dark green
           iconTheme: IconThemeData(color: Colors.white),
           actions: [
             IconButton(
               icon: Icon(Icons.edit, color: Colors.white),
               onPressed: () {
-                CustomToast.showInfo(context, 'Profile is already in edit mode');
+                CustomToast.showInfo(
+                    context, 'Profile is already in edit mode');
               },
             ),
           ],
@@ -180,9 +186,9 @@ class EditProfilePageState extends State<EditProfilePage> {
                 Center(
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.deepPurple[100],
-                    child:
-                        Icon(Icons.person, size: 50, color: Colors.deepPurple),
+                    backgroundColor: const Color(0xFF90a955), // Moss green
+                    child: Icon(Icons.person,
+                        size: 50, color: Color(0xFF132a13)), // Dark green
                   ),
                 ),
                 SizedBox(height: 20),
@@ -211,7 +217,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                               style: TextStyle(color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor:
+                                  const Color(0xFF4f772d), // Fern green
                               padding: EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -230,8 +237,9 @@ class EditProfilePageState extends State<EditProfilePage> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _saveChanges,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      disabledBackgroundColor: Colors.deepPurple[200],
+                      backgroundColor: const Color(0xFF4f772d), // Fern green
+                      disabledBackgroundColor:
+                          const Color(0xFF90a955), // Moss green
                       elevation: 3,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
@@ -288,7 +296,7 @@ class EditProfilePageState extends State<EditProfilePage> {
         enabled: !_isLoading,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: Colors.deepPurple),
+          prefixIcon: Icon(icon, color: const Color(0xFF4f772d)), // Fern green
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
           ),

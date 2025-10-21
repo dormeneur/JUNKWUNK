@@ -19,15 +19,8 @@ class SellerDashboard1State extends State<SellerDashboard1> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.deepPurple[900]!,
-              Colors.deepPurple[700]!,
-            ],
-          ),
+        decoration: const BoxDecoration(
+          color: Color(0xFF132a13), // Dark green - solid
         ),
         child: SafeArea(
           child: Column(
@@ -101,19 +94,12 @@ class SellerDashboard1State extends State<SellerDashboard1> {
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.deepPurple[700]!,
-                  Colors.deepPurple[900]!,
-                ],
-              ),
+              color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.deepPurple.withValues(alpha: 0.5),
-                  blurRadius: 15,
-                  offset: Offset(0, 8),
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -128,7 +114,7 @@ class SellerDashboard1State extends State<SellerDashboard1> {
                   ),
                   child: Icon(
                     Icons.logout_rounded,
-                    color: Colors.white,
+                    color: Color(0xFF4f772d),
                     size: 40,
                   ),
                 ),
@@ -136,7 +122,7 @@ class SellerDashboard1State extends State<SellerDashboard1> {
                 Text(
                   'Log Out',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF1A1A1A),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -146,7 +132,7 @@ class SellerDashboard1State extends State<SellerDashboard1> {
                   'Are you sure you want to logout?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: Color(0xFF666666),
                     fontSize: 16,
                   ),
                 ),
@@ -158,8 +144,8 @@ class SellerDashboard1State extends State<SellerDashboard1> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.deepPurple[900],
-                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF666666),
+          backgroundColor: const Color(0xFFecf39e), // Mindaro
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -184,7 +170,7 @@ class SellerDashboard1State extends State<SellerDashboard1> {
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.red.shade400,
+                          backgroundColor: const Color(0xFFFF3D00),
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

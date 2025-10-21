@@ -22,7 +22,7 @@ class _ItemLocationState extends State<ItemLocation> {
   GoogleMapController? _mapController;
   double _currentZoom = 13;
 
-  final Color primaryColor = const Color(0xFF371F97);
+  final Color primaryColor = const Color(0xFF132a13); // Dark green
 
   LatLng? userLocation;
   List<LatLng> polylineCoordinates = [];
@@ -188,7 +188,7 @@ class _ItemLocationState extends State<ItemLocation> {
                       Polyline(
                         polylineId: const PolylineId('route'),
                         points: polylineCoordinates,
-                        color: Colors.blue,
+                        color: const Color(0xFF4f772d), // Fern green
                         width: 5,
                       ),
                   },

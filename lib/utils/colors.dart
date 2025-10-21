@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary branding colors
-  static const Color primaryColor = Color(0xFF371f97);
-  static const Color secondaryColor = Color(0xFFF5F5F5);
+  // Green palette
+  static const Color primaryColor = Color(0xFF132a13); // Dark green
+  static const Color secondaryColor = Color(0xFF31572c); // Hunter green
+  static const Color tertiaryColor = Color(0xFF4f772d); // Fern green
+  static const Color accentColor = Color(0xFF90a955); // Moss green
+  static const Color lightAccent = Color(0xFFecf39e); // Mindaro
 
   // Text colors
-  static const Color textDark = Color(0xFF333333);
-  static const Color textLight = Color(0xFF8A8A8A);
+  static const Color textDark = Color(0xFF1A1A1A);
+  static const Color textLight = Color(0xFF757575);
 
   // Status colors
-  static const Color success = Color(0xFF4CAF50);
-  static const Color warning = Color(0xFFFFA000);
+  static const Color success = Color(0xFF4f772d);
+  static const Color warning = Color(0xFFFFA726);
   static const Color error = Color(0xFFE53935);
 
   // UI Element colors
-  static const Color cardBackground = Colors.white;
-  static const Color scaffoldBackground = Colors.white;
+  static const Color cardBackground = Color(0xFFFFFFFF);
+  static const Color scaffoldBackground = Color(0xFFF8F9FA);
 
   // Category colors
-  static Color donateColor = Colors.green[600]!;
-  static Color recyclableColor = Colors.blue[600]!;
-  static Color nonRecyclableColor = Colors.orange[600]!;
+  static const Color donateColor = Color(0xFF4f772d); // Fern green
+  static const Color recyclableColor = Color(0xFF90a955); // Moss green
+  static const Color nonRecyclableColor = Color(0xFF31572c); // Hunter green
 }

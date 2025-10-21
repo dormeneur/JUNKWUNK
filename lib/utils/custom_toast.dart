@@ -73,13 +73,13 @@ class CustomToast {
     }
   }
 
-  /// Shows a success toast with green color and check icon
+  /// Shows a success toast with dark green color and check icon
   static void showSuccess(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: Colors.green,
+      color: const Color(0xFF132a13), // Dark green - darker and richer
       icon: Icons.check_circle_outline,
       duration: duration,
     );
@@ -97,25 +97,26 @@ class CustomToast {
     );
   }
 
-  /// Shows an info toast with blue color and info icon
+  /// Shows an info toast with hunter green color and info icon
   static void showInfo(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: Colors.blue,
+      color: const Color(0xFF31572c), // Hunter green - darker than before
       icon: Icons.info_outline,
       duration: duration,
     );
   }
 
-  /// Shows a warning toast with orange color and warning icon
+  /// Shows a warning toast with hunter green color and warning icon
   static void showWarning(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: Colors.orange,
+      color: const Color(
+          0xFF31572c), // Hunter green - same as info for consistency
       icon: Icons.warning_amber_outlined,
       duration: duration,
     );

@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../utils/custom_toast.dart';
-import '../../widgets/app_bar.dart';
 import '../login_page.dart';
 import 'edit_profile_page.dart';
 
@@ -18,220 +16,14 @@ class ProfileUI extends StatefulWidget {
 class ProfileUIState extends State<ProfileUI> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  bool isLoading = true;
 
   // App theme colors
-  final Color primaryColor = const Color(0xFF371f97);
-  final Color accentColor = const Color(0xFFf5f5f5);
-
-  // User info variables
-  String userType = "";
-  String name = "";
-  String email = "";
-  String phone = "";
-  String location = "";
-  bool isVerifiedByNGO = true;
-  int creditPoints = 50; // Default credit points
+  final Color primaryColor = const Color(0xFF132a13); // Dark green
+  final Color accentColor = const Color(0xFFecf39e); // Mindaro
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      User? currentUser = _auth.currentUser;
-      if (currentUser != null) {
-        DocumentSnapshot userData =
-            await _firestore.collection('users').doc(currentUser.uid).get();
-
-        if (userData.exists) {
-          setState(() {
-            Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
-            userType = data['role'] ?? "";
-            name = data['displayName'] ?? "";
-            email = currentUser.email ?? "";
-            phone = data['phone'] ?? "";
-            location = data['location'] ?? "";
-            if (data['role']?.toLowerCase() == 'buyer') {
-              isVerifiedByNGO = true;
-              creditPoints =
-                  data['creditPoints'] ?? 50; // Load credits or use default
-            } else {
-              isVerifiedByNGO = false;
-            }
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading user data: $e');
-      if (!mounted) return;
-      CustomToast.showError(context, 'Error loading profile data');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  void _navigateToEditPage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditProfilePage(
-          name: name,
-          email: email,
-          phone: phone,
-          location: location,
-        ),
-      ),
-    );
-
-    if (result != null) {
-      try {
-        User? currentUser = _auth.currentUser;
-        if (currentUser != null) {
-          await _firestore.collection('users').doc(currentUser.uid).update({
-            'displayName': result["name"],
-            'phone': result["phone"],
-            'location': result["location"],
-          });
-
-          await _loadUserData();
-        }
-      } catch (e) {
-        debugPrint('Error updating user data: $e');
-        if (!mounted) return;
-        CustomToast.showError(context, 'Error updating profile');
-      }
-    }
-  }
-
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          elevation: 16,
-          child: Container(
-            padding: EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  primaryColor.withValues(alpha: 0.9),
-                  primaryColor,
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor.withValues(alpha: 0.5),
-                  blurRadius: 15,
-                  offset: Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.logout_rounded,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Log Out',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Are you sure you want to logout?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: primaryColor,
-                          backgroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 4,
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _signOut(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.red.shade400,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 4,
-                        ),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _signOut(BuildContext context) async {
@@ -258,72 +50,154 @@ class ProfileUIState extends State<ProfileUI> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    User? currentUser = _auth.currentUser;
+
+    if (currentUser == null) {
       return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: primaryColor,
-          ),
+        appBar: AppBar(
+          title: const Text('Profile'),
+          backgroundColor: primaryColor,
+        ),
+        body: const Center(
+          child: Text('Not logged in'),
         ),
       );
     }
 
-    return Scaffold(
-      appBar: AppBarWidget(
-        title: 'My Profile',
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _showLogoutConfirmation(context),
-            tooltip: 'Logout',
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestore.collection('users').doc(currentUser.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Profile'),
+              backgroundColor: primaryColor,
+            ),
+            body: Center(
+              child: Text('Error: ${snapshot.error}'),
+            ),
+          );
+        }
+
+        // Default values while loading or if no data
+        String userType = "";
+        String name = "";
+        String email = currentUser.email ?? "";
+        String phone = "";
+        String location = "";
+        bool isVerifiedByNGO = true;
+        int creditPoints = 50;
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          Map<String, dynamic> data =
+              snapshot.data!.data() as Map<String, dynamic>;
+          userType = data['role'] ?? "";
+          name = data['displayName'] ?? "";
+          phone = data['phone'] ?? "";
+          location = data['location'] ?? "";
+          if (data['role']?.toLowerCase() == 'buyer') {
+            isVerifiedByNGO = true;
+            creditPoints = data['creditPoints'] ?? 50;
+          } else {
+            isVerifiedByNGO = false;
+          }
+        }
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFD4E7C5), // Soft sage green
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: primaryColor,
+            title: const Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit, size: 26),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfilePage(
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        location: location,
+                      ),
+                    ),
+                  ).then((_) {
+                    // StreamBuilder will automatically update when data changes
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout, size: 26),
+                onPressed: () => _signOut(context),
+                tooltip: 'Logout',
+              ),
+            ],
           ),
-          SizedBox(width: 8),
-        ],
-      ),
-      body: Container(
-        color: Colors.white,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            _buildProfileHeader(),
-            SizedBox(height: 16),
-            if (userType.toLowerCase() == 'buyer') _buildVerificationCard(),
-            _buildInfoCard('Email', email, Icons.email_rounded, Colors.blue),
-            _buildInfoCard('Phone', phone, Icons.phone_rounded, Colors.green),
-            _buildInfoCard(
-                'Location', location, Icons.location_on_rounded, Colors.orange),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToEditPage,
-        backgroundColor: primaryColor,
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(Icons.edit_rounded, color: Colors.white),
-      ),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              // StreamBuilder automatically refreshes, but we can trigger a manual refresh if needed
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: _buildProfileContent(
+              userType: userType,
+              name: name,
+              email: email,
+              phone: phone,
+              location: location,
+              isVerifiedByNGO: isVerifiedByNGO,
+              creditPoints: creditPoints,
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileContent({
+    required String userType,
+    required String name,
+    required String email,
+    required String phone,
+    required String location,
+    required bool isVerifiedByNGO,
+    required int creditPoints,
+  }) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        _buildProfileHeader(
+          userType: userType,
+          name: name,
+          creditPoints: creditPoints,
+        ),
+        const SizedBox(height: 16),
+        if (userType.toLowerCase() == 'buyer')
+          _buildVerificationCard(isVerifiedByNGO),
+        _buildInfoCard('Email', email, Icons.email_rounded,
+            const Color(0xFF31572c)), // Hunter green
+        _buildInfoCard('Phone', phone, Icons.phone_rounded,
+            const Color(0xFF4f772d)), // Fern green
+        _buildInfoCard('Location', location, Icons.location_on_rounded,
+            const Color(0xFF90a955)), // Moss green
+      ],
+    );
+  }
+
+  Widget _buildProfileHeader({
+    required String userType,
+    required String name,
+    required int creditPoints,
+  }) {
     return Container(
-      padding: EdgeInsets.only(bottom: 30),
-      decoration: BoxDecoration(
-        color: primaryColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.symmetric(vertical: 30),
       child: Column(
         children: [
           // Top header with credits for buyers
@@ -342,10 +216,10 @@ class ProfileUIState extends State<ProfileUI> {
                   ),
                   textStyle: TextStyle(color: Colors.white),
                   child: Container(
-                    margin: EdgeInsets.only(top: 16, right: 16),
+                    margin: EdgeInsets.only(right: 16),
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.amber[700],
+                      color: const Color(0xFF90a955), // Moss green
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -378,24 +252,20 @@ class ProfileUIState extends State<ProfileUI> {
           ),
           SizedBox(height: 20),
 
-          // Profile picture
+          // Profile picture with white circle background
           Stack(
             alignment: Alignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(4),
+                padding: EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Colors.white.withValues(alpha: 0.8), Colors.white],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 15,
-                      offset: Offset(0, 5),
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: Offset(0, 8),
                     ),
                   ],
                 ),
@@ -416,7 +286,7 @@ class ProfileUIState extends State<ProfileUI> {
                   child: Container(
                     padding: EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: const Color(0xFF4f772d), // Fern green
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                       boxShadow: [
@@ -438,20 +308,13 @@ class ProfileUIState extends State<ProfileUI> {
           ),
           SizedBox(height: 20),
 
-          // Name
+          // Name - dark green on sage background
           Text(
             name,
             style: TextStyle(
-              color: Colors.white,
+              color: primaryColor, // Dark green
               fontSize: 26,
               fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  color: Colors.black26,
-                  offset: Offset(0, 2),
-                  blurRadius: 4,
-                ),
-              ],
             ),
           ),
           SizedBox(height: 12),
@@ -461,8 +324,8 @@ class ProfileUIState extends State<ProfileUI> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
               color: userType.toLowerCase() == "seller"
-                  ? Colors.green[600]
-                  : Colors.blue[600],
+                  ? const Color(0xFF4f772d) // Fern green for seller
+                  : const Color(0xFF31572c), // Hunter green for buyer
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -487,8 +350,8 @@ class ProfileUIState extends State<ProfileUI> {
     );
   }
 
-  Widget _buildVerificationCard() {
-    if (userType.toLowerCase() != 'buyer') {
+  Widget _buildVerificationCard(bool isVerifiedByNGO) {
+    if (!isVerifiedByNGO) {
       return SizedBox.shrink();
     }
 
@@ -550,7 +413,8 @@ class ProfileUIState extends State<ProfileUI> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: const Color(
+                          0xFF4f772d), // Fern green - matches palette
                     ),
                   ),
                 ],

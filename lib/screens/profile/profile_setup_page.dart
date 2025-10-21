@@ -44,8 +44,8 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
   late Animation<double> _slideAnimation;
 
   // App theme colors
-  final Color primaryColor = const Color(0xFF371f97); // Dark purple
-  final Color accentColor = const Color(0xFFEEE8F6); // Light lavender
+  final Color primaryColor = const Color(0xFF132a13); // Dark green
+  final Color accentColor = const Color(0xFFecf39e); // Mindaro
 
   @override
   void initState() {

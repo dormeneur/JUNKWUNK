@@ -10,6 +10,7 @@ import 'screens/login_page.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/profile/profile_setup_page.dart';
 import 'screens/seller/seller_dashboard1.dart';
+import 'utils/design_constants.dart';
 
 bool _userLoggedOut = false;
 void main() async {
@@ -45,7 +46,31 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'JunkWunk',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.secondary,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.primary,
+          secondary: AppColors.accent,
+          surface: AppColors.white,
+          error: AppColors.error,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: AppButtons.primaryButton,
+        ),
+        textTheme: TextTheme(
+          displayLarge: AppTypography.h1,
+          displayMedium: AppTypography.h2,
+          displaySmall: AppTypography.h3,
+          headlineMedium: AppTypography.h4,
+          bodyLarge: AppTypography.bodyLarge,
+          bodyMedium: AppTypography.bodyMedium,
+          bodySmall: AppTypography.bodySmall,
+        ),
       ),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
