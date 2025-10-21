@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthHelpers {
@@ -85,7 +85,8 @@ class AuthHelpers {
         }
       } catch (firestoreError) {
         // Handle Firestore errors by proceeding to profile setup
-        print('Firestore error in handlePostAuthNavigation: $firestoreError');
+        debugPrint(
+            'Firestore error in handlePostAuthNavigation: $firestoreError');
 
         if (context.mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil(
@@ -96,7 +97,7 @@ class AuthHelpers {
         }
       }
     } catch (e) {
-      print('Error in handlePostAuthNavigation: $e');
+      debugPrint('Error in handlePostAuthNavigation: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),

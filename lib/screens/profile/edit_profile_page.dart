@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:app_settings/app_settings.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String name;
@@ -11,7 +11,8 @@ class EditProfilePage extends StatefulWidget {
   final String phone;
   final String location;
 
-  const EditProfilePage({super.key, 
+  const EditProfilePage({
+    super.key,
     required this.name,
     required this.email,
     required this.phone,
@@ -19,10 +20,10 @@ class EditProfilePage extends StatefulWidget {
   });
 
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  EditProfilePageState createState() => EditProfilePageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
@@ -68,7 +69,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         }
       }
     } catch (e) {
-      print('Error saving changes: $e');
+      debugPrint('Error saving changes: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving changes')),
@@ -93,7 +94,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           "${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
       return address;
     } catch (e) {
-      print('Error converting coordinates to address: $e');
+      debugPrint('Error converting coordinates to address: $e');
       return "Unknown Location";
     }
   }
@@ -104,6 +105,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(
@@ -116,6 +118,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -133,6 +136,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -150,7 +154,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       String address = await _getAddressFromCoordinates(
@@ -160,7 +166,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _locationController.text = address;
       });
     } catch (e) {
-      print('Error getting location: $e');
+      debugPrint('Error getting location: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error getting location')),
       );
@@ -253,6 +260,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   height: 48,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _saveChanges,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      disabledBackgroundColor: Colors.deepPurple[200],
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
                     child: _isLoading
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
@@ -263,14 +278,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      disabledBackgroundColor: Colors.deepPurple[200],
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
                   ),
                 ),
               ],

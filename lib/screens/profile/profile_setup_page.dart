@@ -1,31 +1,33 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lottie/lottie.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../services/api_keys.dart';
 import '../buyer/buyer_dashboard1.dart';
 import '../seller/seller_dashboard1.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 
 class ProfileSetupPage extends StatefulWidget {
   final String email;
   final String? role;
 
   const ProfileSetupPage({
-    Key? key,
+    super.key,
     required this.email,
     this.role,
-  }) : super(key: key);
+  });
 
   @override
-  _ProfileSetupPageState createState() => _ProfileSetupPageState();
+  ProfileSetupPageState createState() => ProfileSetupPageState();
 }
 
-class _ProfileSetupPageState extends State<ProfileSetupPage>
+class ProfileSetupPageState extends State<ProfileSetupPage>
     with SingleTickerProviderStateMixin {
   final String token = const Uuid().v4();
   List<dynamic> listOfLocations = [];
@@ -95,11 +97,12 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
   void placeSuggestion(String input) async {
     final String apiKey = googleApiKey; // Make sure to import api_keys.dart
     try {
-      String baseUrl = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
+      String baseUrl =
+          "https://maps.googleapis.com/maps/api/place/autocomplete/json";
       String request = "$baseUrl?input=$input&key=$apiKey&sessiontoken=$token";
       var response = await http.get(Uri.parse(request));
       var data = json.decode(response.body);
-      
+
       if (response.statusCode == 200) {
         setState(() {
           listOfLocations = data['predictions'];
@@ -107,10 +110,11 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
       }
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        debugPrint(e.toString());
       }
     }
   }
+
   Future<void> _tryLoadUserData() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -143,14 +147,15 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
             });
           }
         } catch (e) {
-          print('Error loading user data: $e');
+          debugPrint('Error loading user data: $e');
           // Continue without loading data
         }
       }
     } catch (e) {
-      print('Error in _tryLoadUserData: $e');
+      debugPrint('Error in _tryLoadUserData: $e');
     }
   }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -166,15 +171,15 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
         _isLoading = true;
       });
 
-      print('!!!DEBUG: Starting profile save process');
-      print('!!!DEBUG: Selected role: $_selectedRole');
+      debugPrint('!!!DEBUG: Starting profile save process');
+      debugPrint('!!!DEBUG: Selected role: $_selectedRole');
 
       try {
         final user = FirebaseAuth.instance.currentUser;
-        print('!!!DEBUG: Current user: ${user?.uid}');
+        debugPrint('!!!DEBUG: Current user: ${user?.uid}');
 
         if (user != null) {
-          print('!!!DEBUG: Attempting to update Firestore document');
+          debugPrint('!!!DEBUG: Attempting to update Firestore document');
 
           // Add a short delay for better UX
           await Future.delayed(const Duration(milliseconds: 800));
@@ -223,9 +228,9 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                 .doc(user.uid)
                 .set(userData, SetOptions(merge: true));
 
-            print('!!!DEBUG: Firestore update completed successfully');
+            debugPrint('!!!DEBUG: Firestore update completed successfully');
           } catch (firestoreError) {
-            print('!!!DEBUG: Firestore error: $firestoreError');
+            debugPrint('!!!DEBUG: Firestore error: $firestoreError');
             // Show error but continue with navigation
             if (mounted) {}
           }
@@ -235,33 +240,35 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
             _isLoading = false;
           });
 
-          print(
+          debugPrint(
               '!!!DEBUG: About to navigate to dashboard regardless of Firestore result');
 
           // CRITICAL FIX: DIRECT NAVIGATION - Always navigate regardless of Firestore result
           if (mounted) {
-            print('!!!DEBUG: Context is mounted, proceeding with navigation');
+            debugPrint(
+                '!!!DEBUG: Context is mounted, proceeding with navigation');
 
             // Import the actual dashboard widgets at the top of this file
             if (_selectedRole == 'seller') {
-              print('!!!DEBUG: Navigating to seller dashboard');
+              debugPrint('!!!DEBUG: Navigating to seller dashboard');
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => SellerDashboard1()),
                 (Route<dynamic> route) => false,
               );
             } else {
-              print('!!!DEBUG: Navigating to buyer dashboard');
+              debugPrint('!!!DEBUG: Navigating to buyer dashboard');
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => BuyerDashboard1()),
                 (Route<dynamic> route) => false,
               );
             }
-            print('!!!DEBUG: Navigation command executed');
+            debugPrint('!!!DEBUG: Navigation command executed');
           } else {
-            print('!!!DEBUG: Context is NOT mounted after Firestore update');
+            debugPrint(
+                '!!!DEBUG: Context is NOT mounted after Firestore update');
           }
         } else {
-          print('!!!DEBUG: User is null, cannot update profile');
+          debugPrint('!!!DEBUG: User is null, cannot update profile');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -273,8 +280,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
           }
         }
       } catch (e) {
-        print('!!!DEBUG: Error saving profile: $e');
-        print('!!!DEBUG: Error type: ${e.runtimeType}');
+        debugPrint('!!!DEBUG: Error saving profile: $e');
+        debugPrint('!!!DEBUG: Error type: ${e.runtimeType}');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error saving profile: $e')),
@@ -283,16 +290,16 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
             _isLoading = false;
           });
         } else {
-          print('!!!DEBUG: Context not mounted in error handler');
+          debugPrint('!!!DEBUG: Context not mounted in error handler');
         }
       }
     } else if (_selectedRole == null) {
-      print('!!!DEBUG: No role selected');
+      debugPrint('!!!DEBUG: No role selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a role')),
       );
     } else {
-      print('!!!DEBUG: Form validation failed');
+      debugPrint('!!!DEBUG: Form validation failed');
     }
   }
 
@@ -318,14 +325,14 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.3),
+                    color: primaryColor.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   )
                 ]
               : [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   )
@@ -356,7 +363,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
               style: TextStyle(
                 fontSize: 14,
                 color:
-                    isSelected ? primaryColor.withOpacity(0.8) : Colors.black54,
+                    isSelected ? primaryColor.withValues(alpha: 0.8) : Colors.black54,
               ),
             ),
           ],
@@ -375,7 +382,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
             end: Alignment.bottomCenter,
             colors: [
               primaryColor,
-              primaryColor.withOpacity(0.7),
+              primaryColor.withValues(alpha: 0.7),
               accentColor,
             ],
             stops: const [0.0, 0.5, 1.0],
@@ -439,10 +446,10 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                             // Role selection
                             Container(
                               decoration: BoxDecoration(
-                                color: accentColor.withOpacity(0.3),
+                                color: accentColor.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: primaryColor.withOpacity(0.2),
+                                  color: primaryColor.withValues(alpha: 0.2),
                                   width: 1,
                                 ),
                               ),
@@ -527,7 +534,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                                             color: primaryColor, width: 2),
                                       ),
                                       filled: true,
-                                      fillColor: accentColor.withOpacity(0.2),
+                                      fillColor: accentColor.withValues(alpha: 0.2),
                                       labelStyle:
                                           TextStyle(color: primaryColor),
                                     ),
@@ -555,7 +562,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                                             color: primaryColor, width: 2),
                                       ),
                                       filled: true,
-                                      fillColor: accentColor.withOpacity(0.2),
+                                      fillColor: accentColor.withValues(alpha: 0.2),
                                       labelStyle:
                                           TextStyle(color: primaryColor),
                                     ),
@@ -593,7 +600,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                                               ),
                                               filled: true,
                                               fillColor:
-                                                  accentColor.withOpacity(0.2),
+                                                  accentColor.withValues(alpha: 0.2),
                                               labelStyle: TextStyle(
                                                   color: primaryColor),
                                             ),
@@ -615,7 +622,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                                                 boxShadow: [
                                                   BoxShadow(
                                                     color: Colors.black
-                                                        .withOpacity(0.1),
+                                                        .withValues(alpha: 0.1),
                                                     blurRadius: 10,
                                                     offset: Offset(0, 5),
                                                   ),
@@ -683,7 +690,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage>
                                         ),
                                         elevation: 5,
                                         shadowColor:
-                                            primaryColor.withOpacity(0.5),
+                                            primaryColor.withValues(alpha: 0.5),
                                       ),
                                       child: _isLoading
                                           ? Row(

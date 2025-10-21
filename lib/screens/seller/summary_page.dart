@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
 import '../../widgets/app_bar.dart';
 
 class SummaryPage extends StatelessWidget {
@@ -38,8 +39,7 @@ class SummaryPage extends StatelessWidget {
     required this.price,
     required this.title,
     this.quantity = "1",
-  })  : isViewMode = false;
-
+  }) : isViewMode = false;
 
   Future<void> _deleteItem(BuildContext context, String itemId) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -52,20 +52,23 @@ class SummaryPage extends StatelessWidget {
           .collection('items')
           .doc(itemId)
           .delete();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Item deleted successfully'),
-          backgroundColor: primaryColor,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Item deleted successfully'),
+            backgroundColor: primaryColor,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting item: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting item: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -145,7 +148,7 @@ class SummaryPage extends StatelessWidget {
                   Icon(
                     Icons.inventory_2_outlined,
                     size: 80,
-                    color: primaryColor.withOpacity(0.3),
+                    color: primaryColor.withValues(alpha: 0.3),
                   ),
                   SizedBox(height: 16),
                   Text(
@@ -190,9 +193,10 @@ class SummaryPage extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: primaryColor.withOpacity(0.2)),
+                    border:
+                        Border.all(color: primaryColor.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     children: [
@@ -226,9 +230,10 @@ class SummaryPage extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.green.withOpacity(0.2)),
+                    border:
+                        Border.all(color: Colors.green.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     children: [
@@ -327,7 +332,7 @@ class SummaryPage extends StatelessWidget {
                   bottom: 0,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(12)),
                     ),
@@ -340,7 +345,7 @@ class SummaryPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: Offset(0, 2),
                             ),
@@ -487,9 +492,7 @@ class SummaryPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Add edit functionality
-                        },
+                        onPressed: () {},
                         icon: Icon(Icons.edit, color: primaryColor),
                         label:
                             Text('Edit', style: TextStyle(color: primaryColor)),
@@ -537,10 +540,10 @@ class SummaryPage extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: categoryColor.withOpacity(0.1),
+        color: categoryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: categoryColor.withOpacity(0.5),
+          color: categoryColor.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -565,6 +568,4 @@ class SummaryPage extends StatelessWidget {
       ),
     );
   }
-
-
 }

@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_login/flutter_login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_login/flutter_login.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../utils/auth_helpers.dart';
 
 class LoginPage extends StatelessWidget {
@@ -23,8 +24,8 @@ class LoginPage extends StatelessWidget {
   }
 
   Future<bool> _checkConnectivity() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    return connectivityResult != ConnectivityResult.none;
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    return !connectivityResult.contains(ConnectivityResult.none);
   }
 
   Future<String?> _authUser(LoginData data) async {
@@ -80,7 +81,7 @@ class LoginPage extends StatelessWidget {
         return 'Password must contain at least 8 characters, including uppercase, lowercase, number, and special character';
       }
 
-      print('DEBUG: Starting signup process for ${data.name}');
+      debugPrint('DEBUG: Starting signup process for ${data.name}');
 
       final userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -88,7 +89,7 @@ class LoginPage extends StatelessWidget {
         password: data.password!,
       );
 
-      print('DEBUG: User created with UID: ${userCredential.user?.uid}');
+      debugPrint('DEBUG: User created with UID: ${userCredential.user?.uid}');
 
       // Create user document (removed emailVerified field)
       await FirebaseFirestore.instance
@@ -99,7 +100,7 @@ class LoginPage extends StatelessWidget {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      print('DEBUG: User document created in Firestore');
+      debugPrint('DEBUG: User document created in Firestore');
 
       // Reset the user_logged_out flag when signup is successful
       final prefs = await SharedPreferences.getInstance();
@@ -107,11 +108,11 @@ class LoginPage extends StatelessWidget {
 
       // Force update auth state to avoid loading issue
       await userCredential.user?.reload();
-      print('DEBUG: User auth state reloaded');
+      debugPrint('DEBUG: User auth state reloaded');
 
       return null;
     } on FirebaseAuthException catch (e) {
-      print(
+      debugPrint(
           'DEBUG: FirebaseAuthException during signup: ${e.code} - ${e.message}');
       switch (e.code) {
         case 'email-already-in-use':
@@ -124,7 +125,7 @@ class LoginPage extends StatelessWidget {
           return e.message ?? 'Sign up failed';
       }
     } catch (e) {
-      print('DEBUG: Unexpected error during signup: $e');
+      debugPrint('DEBUG: Unexpected error during signup: $e');
       return 'An unexpected error occurred: $e';
     }
   }
@@ -189,7 +190,7 @@ class LoginPage extends StatelessWidget {
           ),
           inputTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFFEEE8F6).withOpacity(0.2),
+            fillColor: const Color(0xFFEEE8F6).withValues(alpha: 0.2),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: const BorderSide(color: Color(0xFFEEE8F6)),
@@ -271,7 +272,7 @@ class LoginPage extends StatelessWidget {
               }),
         ],
         onSubmitAnimationCompleted: () {
-          print('DEBUG: Login/Signup animation completed');
+          debugPrint('DEBUG: Login/Signup animation completed');
 
           // Get the current user directly
           final User? user = FirebaseAuth.instance.currentUser;
@@ -285,7 +286,7 @@ class LoginPage extends StatelessWidget {
             // Navigate immediately without delay
             AuthHelpers.handlePostAuthNavigation(context);
           } else {
-            print('DEBUG: User is null after animation completion');
+            debugPrint('DEBUG: User is null after animation completion');
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

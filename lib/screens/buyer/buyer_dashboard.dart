@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../widgets/item_card.dart';
 import '../../widgets/app_bar.dart';
+import '../../utils/design_constants.dart';
 import 'buyer_cart.dart';
 import '../profile/profile_page.dart';
 
@@ -19,8 +20,7 @@ class BuyerDashboardState extends State<BuyerDashboard>
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   int cartItemCount = 0;
   late TabController _tabController;
-  final Color primaryColor = const Color(0xFF371f97);
-  final Color secondaryColor = const Color(0xFFEEE8F6);
+  // Using design system colors
   final PageController _pageController = PageController();
 
   @override
@@ -99,7 +99,7 @@ class BuyerDashboardState extends State<BuyerDashboard>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: secondaryColor,
+      backgroundColor: AppColors.secondary,
       appBar: AppBarWidget(
         title: 'Browse Products',
         leading: IconButton(
@@ -138,7 +138,7 @@ class BuyerDashboardState extends State<BuyerDashboard>
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 2,
                           offset: Offset(0, 1),
                         ),
@@ -150,10 +150,10 @@ class BuyerDashboardState extends State<BuyerDashboard>
                     ),
                     child: Text(
                       '$cartItemCount',
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: AppTypography.fontSizeXS,
+                        fontWeight: AppTypography.bold,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -168,22 +168,16 @@ class BuyerDashboardState extends State<BuyerDashboard>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: primaryColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  offset: Offset(0, 4),
-                  blurRadius: 8,
-                ),
-              ],
+              color: AppColors.primary,
+              boxShadow: AppShadows.shadow2,
             ),
             child: TabBar(
               controller: _tabController,
-              indicatorColor: Colors.white,
+              indicatorColor: AppColors.white,
               indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.7),
-              tabs: [
+              labelColor: AppColors.white,
+              unselectedLabelColor: AppColors.white.withValues(alpha: 0.7),
+              tabs: const [
                 Tab(
                   icon: Icon(Icons.category),
                   text: 'All Items',
@@ -229,11 +223,14 @@ class BuyerDashboardState extends State<BuyerDashboard>
         onPressed: () {
           setState(() {});
         },
-        backgroundColor: primaryColor,
-        child: const Icon(Icons.refresh_rounded, color: Colors.white),
-        elevation: 4,
+        backgroundColor: AppColors.primary,
+        elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppBorders.borderRadiusLG,
+        ),
+        child: const Icon(
+          Icons.refresh_rounded,
+          color: AppColors.white,
         ),
       ),
     );
@@ -242,28 +239,28 @@ class BuyerDashboardState extends State<BuyerDashboard>
   Widget _buildItemsView(String? filterValue) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+        color: AppColors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(AppBorders.radiusXL),
+          topRight: Radius.circular(AppBorders.radiusXL),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: 5,
-          ),
-        ],
+        boxShadow: AppShadows.shadow2,
       ),
-      margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
+      padding: AppSpacing.paddingVerticalMD,
       child: StreamBuilder<QuerySnapshot>(
         stream: _buildItemsStreamFiltered(filterValue),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF371f97)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                strokeWidth: 3,
               ),
             );
           }
@@ -277,23 +274,26 @@ class BuyerDashboardState extends State<BuyerDashboard>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inventory_2_outlined,
-                      size: 80, color: const Color(0xFFEEE8F6)),
-                  const SizedBox(height: 16),
+                  const Icon(
+                    Icons.inventory_2_outlined,
+                    size: 80,
+                    color: AppColors.secondary,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                   const Text(
                     'No items available',
                     style: TextStyle(
-                      fontSize: 18,
-                      color: Color(0xFF371f97),
-                      fontWeight: FontWeight.w500,
+                      fontSize: AppTypography.fontSizeXL,
+                      color: AppColors.primary,
+                      fontWeight: AppTypography.medium,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: AppSpacing.sm),
+                  const Text(
                     'Check back later for new products',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                      fontSize: AppTypography.fontSizeMD,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],

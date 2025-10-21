@@ -7,12 +7,12 @@ class MapControls extends StatelessWidget {
   final VoidCallback onConfirm;
 
   const MapControls({
-    Key? key,
+    super.key,
     required this.distanceInKm,
     required this.onZoomIn,
     required this.onZoomOut,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

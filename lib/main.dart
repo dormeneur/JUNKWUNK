@@ -1,25 +1,25 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'screens/login_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'firebase_options.dart';
+import 'screens/buyer/buyer_dashboard1.dart';
+import 'screens/login_page.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/profile/profile_setup_page.dart';
 import 'screens/seller/seller_dashboard1.dart';
-import 'screens/buyer/buyer_dashboard1.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 bool _userLoggedOut = false;
 void main() async {
-  
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print("Firebase initialized successfully");
+    debugPrint("Firebase initialized successfully");
 
     // Check if user has manually logged out
     final prefs = await SharedPreferences.getInstance();
@@ -30,7 +30,7 @@ void main() async {
       await FirebaseAuth.instance.signOut();
     }
   } catch (e) {
-    print("Error initializing Firebase: $e");
+    debugPrint("Error initializing Firebase: $e");
   }
 
   runApp(const MyApp());
@@ -142,7 +142,7 @@ Future<void> handleLogout(BuildContext context) async {
       );
     }
   } catch (e) {
-    print('Error during logout: $e');
+    debugPrint('Error during logout: $e');
   }
 }
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import '../utils/design_constants.dart';
 
 class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
   final Widget? leading;
-  static const Color primaryColor = Color(0xFF371f97);
 
   const AppBarWidget({
     super.key,
@@ -16,19 +16,21 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: primaryColor,
+      backgroundColor: AppColors.primary,
       title: Text(
         title,
         style: const TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+          color: AppColors.white,
+          fontSize: AppTypography.fontSize2XL,
+          fontWeight: AppTypography.bold,
         ),
       ),
       centerTitle: true,
-      elevation: 0,
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       leading: leading,
       actions: actions,
+      iconTheme: const IconThemeData(color: AppColors.white),
     );
   }
 

@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:JunkWunk/screens/buyer/item_location.dart';
-import 'package:flutter/material.dart';
+
+import '/screens/buyer/item_location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -24,8 +25,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
 
   // Animation controllers
   late AnimationController _selectionController;
-  late Animation<double> _selectionAnimation;
-  List<AnimationController> _itemControllers = [];
+  final List<AnimationController> _itemControllers = [];
 
   // Colors
   final Color primaryColor = const Color(0xFF371F97);
@@ -44,10 +44,6 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     _selectionController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
-    );
-    _selectionAnimation = CurvedAnimation(
-      parent: _selectionController,
-      curve: Curves.easeInOut,
     );
   }
 
@@ -82,7 +78,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 await _firestore.collection('sellers').doc(sellerId).get();
 
             if (!sellerDoc.exists) {
-              print('Seller document not found for ID: $sellerId');
+              debugPrint('Seller document not found for ID: $sellerId');
               return null;
             }
 
@@ -95,7 +91,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 .get();
 
             if (!itemData.exists) {
-              print('Item document not found for ID: $itemId');
+              debugPrint('Item document not found for ID: $itemId');
               return null;
             }
 
@@ -114,7 +110,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
               );
             }
 
-            print(
+            debugPrint(
                 'Fetched coordinates for seller $sellerId: ${coordinates?.latitude}, ${coordinates?.longitude}');
 
             return CartItem(
@@ -133,7 +129,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
               coordinates: coordinates ?? GeoPoint(0.0, 0.0),
             );
           } catch (e) {
-            print('Error loading item ${doc.id}: $e');
+            debugPrint('Error loading item ${doc.id}: $e');
             return null;
           }
         }),
@@ -153,7 +149,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             'Connection timeout. Please check your internet connection.');
       }
     } catch (e) {
-      print('Error loading cart items: $e');
+      debugPrint('Error loading cart items: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         _showErrorSnackbar('Error loading cart items: ${e.toString()}');
@@ -233,13 +229,6 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
 
       for (var itemId in selectedItems) {
         final item = cartItems.firstWhere((item) => item.id == itemId);
-
-        // Update seller's inventory
-        final itemRef = _firestore
-            .collection('sellers')
-            .doc(item.sellerId)
-            .collection('items')
-            .doc(item.itemId);
 
         // Create purchase record
         final purchaseRef = _firestore.collection('purchases').doc();
@@ -327,59 +316,6 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     ];
   }
 
-  Future<void> _removeSelectedItems() async {
-    if (_isProcessing) return;
-    _isProcessing = true;
-
-    try {
-      final batch = _firestore.batch();
-      final itemsToRemove = List<String>.from(selectedItems);
-
-      for (var itemId in itemsToRemove) {
-        final index = cartItems.indexWhere((item) => item.id == itemId);
-        if (index != -1) {
-          final item = cartItems[index];
-
-          // Animate the removal
-          if (_listKey.currentState != null) {
-            _listKey.currentState!.removeItem(
-              index,
-              (context, animation) => SizeTransition(
-                sizeFactor: animation,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: _buildCartItem(item, index),
-                ),
-              ),
-              duration: const Duration(milliseconds: 300),
-            );
-          }
-
-          // Add to batch delete
-          final ref = _firestore
-              .collection('users')
-              .doc(userId)
-              .collection('cart')
-              .doc(itemId);
-          batch.delete(ref);
-        }
-      }
-
-      // Execute batch delete
-      await batch.commit();
-
-      setState(() {
-        cartItems.removeWhere((item) => selectedItems.contains(item.id));
-        selectedItems.clear();
-        isSelectionMode = false;
-      });
-    } catch (e) {
-      _showErrorSnackbar('Error removing items');
-    } finally {
-      _isProcessing = false;
-    }
-  }
-
   Widget _buildBody() {
     if (cartItems.isEmpty) {
       return Center(
@@ -456,7 +392,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? primaryColor.withOpacity(0.1) : null,
+                color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -478,7 +414,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -495,13 +431,14 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
               right: 8,
               child: GestureDetector(
                 onTap: () => {
-                  print(item.coordinates.latitude),
-                  print(item.coordinates.longitude),
+                  debugPrint(item.coordinates.latitude as String?),
+                  debugPrint(item.coordinates.longitude as String?),
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ItemLocation(
-                        coordinates: item.coordinates, // Pass your existing GeoPoint here
+                        coordinates: item
+                            .coordinates, // Pass your existing GeoPoint here
                       ),
                     ),
                   )
@@ -509,7 +446,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -588,7 +525,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: blackColor.withOpacity(0.6),
+            color: blackColor.withValues(alpha: 0.6),
             fontSize: 14,
           ),
         ),
@@ -602,7 +539,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 vertical: 4,
               ),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
+                color: primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -629,7 +566,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         color: whiteColor,
         boxShadow: [
           BoxShadow(
-            color: blackColor.withOpacity(0.1),
+            color: blackColor.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),

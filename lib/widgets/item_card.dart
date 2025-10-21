@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../utils/design_constants.dart';
 
 class ItemCard extends StatefulWidget {
   final String itemId;
@@ -74,7 +75,11 @@ class _ItemCardState extends State<ItemCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Added $_selectedQuantity item(s) to cart!'),
-          backgroundColor: Color(0xFF371f97),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppBorders.borderRadiusMD,
+          ),
         ),
       );
       widget.onCartUpdated?.call();
@@ -91,11 +96,11 @@ class _ItemCardState extends State<ItemCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 3,
-      shadowColor: Colors.black.withOpacity(0.1),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppBorders.borderRadiusLG,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,8 +112,9 @@ class _ItemCardState extends State<ItemCard> {
                 child: Hero(
                   tag: 'image-${widget.itemId}',
                   child: ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppBorders.radiusLG),
+                    ),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
                       child: Image.network(
@@ -118,8 +124,10 @@ class _ItemCardState extends State<ItemCard> {
                           if (loadingProgress == null) return child;
                           return Center(
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF371f97)),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                              strokeWidth: 3,
                             ),
                           );
                         },
@@ -137,16 +145,19 @@ class _ItemCardState extends State<ItemCard> {
               ),
               if (widget.quantity > 1)
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: AppSpacing.md,
+                  right: AppSpacing.md,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
                     decoration: BoxDecoration(
-                      color: Color(0xFF371f97).withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.primary.withValues(alpha: 0.9),
+                      borderRadius: AppBorders.borderRadiusMD,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: Offset(0, 2),
                         ),
@@ -163,10 +174,10 @@ class _ItemCardState extends State<ItemCard> {
                         SizedBox(width: 4),
                         Text(
                           '${widget.quantity} available',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontWeight: AppTypography.bold,
+                            fontSize: AppTypography.fontSizeSM,
                           ),
                         ),
                       ],
@@ -176,7 +187,7 @@ class _ItemCardState extends State<ItemCard> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingMD,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -190,27 +201,28 @@ class _ItemCardState extends State<ItemCard> {
                           Text(
                             widget.title,
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Color(0xFF371f97),
+                              fontWeight: AppTypography.bold,
+                              fontSize: AppTypography.fontSizeXL,
+                              color: AppColors.primary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             'Price: ₹${widget.price}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: AppTypography.fontSizeMD,
+                              fontWeight: AppTypography.medium,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             'Location: ${widget.city}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: AppTypography.fontSizeMD,
                             ),
                           ),
                         ],
@@ -230,26 +242,29 @@ class _ItemCardState extends State<ItemCard> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 if (widget.categories.isNotEmpty) ...[
                   const Text(
                     'Categories:',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: AppTypography.fontSizeSM,
+                      fontWeight: AppTypography.medium,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: widget.categories.map((category) {
                       return Chip(
                         label: Text(category),
                         backgroundColor: _getCategoryColor(category),
-                        labelStyle:
-                            const TextStyle(color: Colors.white, fontSize: 12),
+                        labelStyle: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: AppTypography.fontSizeSM,
+                          fontWeight: AppTypography.medium,
+                        ),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         padding: EdgeInsets.zero,
                       );
@@ -257,39 +272,45 @@ class _ItemCardState extends State<ItemCard> {
                   ),
                 ],
                 if (widget.itemTypes.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   const Text(
                     'Item Types:',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: AppTypography.fontSizeSM,
+                      fontWeight: AppTypography.medium,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: widget.itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor: Colors.purple[300],
-                        labelStyle:
-                            const TextStyle(color: Colors.white, fontSize: 12),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                        labelStyle: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: AppTypography.fontSizeSM,
+                          fontWeight: AppTypography.medium,
+                        ),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         padding: EdgeInsets.zero,
                       );
                     }).toList(),
                   ),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   widget.description,
-                  style: TextStyle(color: Colors.grey[800]),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: AppTypography.fontSizeMD,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -297,40 +318,43 @@ class _ItemCardState extends State<ItemCard> {
                     if (widget.quantity > 1)
                       Container(
                         decoration: BoxDecoration(
-                          color: Color(0xFFEEE8F6),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.secondary,
+                          borderRadius: AppBorders.borderRadiusMD,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.remove, size: 18),
+                              icon: const Icon(Icons.remove, size: 18),
                               onPressed: _selectedQuantity > 1
                                   ? () => _updateQuantity(-1)
                                   : null,
-                              color: Color(0xFF371f97),
-                              padding: EdgeInsets.all(4),
-                              constraints: BoxConstraints(),
+                              color: AppColors.primary,
+                              padding: const EdgeInsets.all(AppSpacing.xs),
+                              constraints: const BoxConstraints(),
                               splashRadius: 20,
                             ),
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs,
+                              ),
                               child: Text(
                                 '$_selectedQuantity',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF371f97),
+                                style: const TextStyle(
+                                  fontWeight: AppTypography.bold,
+                                  color: AppColors.primary,
+                                  fontSize: AppTypography.fontSizeMD,
                                 ),
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.add, size: 18),
+                              icon: const Icon(Icons.add, size: 18),
                               onPressed: _selectedQuantity < widget.quantity
                                   ? () => _updateQuantity(1)
                                   : null,
-                              color: Color(0xFF371f97),
-                              padding: EdgeInsets.all(4),
-                              constraints: BoxConstraints(),
+                              color: AppColors.primary,
+                              padding: const EdgeInsets.all(AppSpacing.xs),
+                              constraints: const BoxConstraints(),
                               splashRadius: 20,
                             ),
                           ],
@@ -346,11 +370,15 @@ class _ItemCardState extends State<ItemCard> {
                       icon: const Icon(Icons.add_shopping_cart, size: 18),
                       label: const Text('Add to Cart'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF371f97),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
                         elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: AppBorders.borderRadiusMD,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.md,
                         ),
                       ),
                     ),
@@ -397,7 +425,7 @@ class _ItemCardState extends State<ItemCard> {
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -426,11 +454,11 @@ class _ItemCardState extends State<ItemCard> {
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: AppBorders.borderRadiusXL,
           ),
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: AppSpacing.paddingLG,
             constraints: const BoxConstraints(maxWidth: 400),
             child: SingleChildScrollView(
               child: Column(
@@ -447,37 +475,39 @@ class _ItemCardState extends State<ItemCard> {
                             Text(
                               title,
                               style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF371f97),
+                                fontSize: AppTypography.fontSize3XL,
+                                fontWeight: AppTypography.bold,
+                                color: AppColors.primary,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                             Row(
                               children: [
                                 Text(
                                   'Price: ₹$price',
                                   style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: AppTypography.fontSizeXL,
+                                    color: AppColors.info,
+                                    fontWeight: AppTypography.semiBold,
                                   ),
                                 ),
                                 if (quantity > 1) ...[
-                                  SizedBox(width: 12),
+                                  const SizedBox(width: AppSpacing.md),
                                   Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.sm,
+                                      vertical: AppSpacing.xs,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Color(0xFF371f97).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                      borderRadius: AppBorders.borderRadiusSM,
                                     ),
                                     child: Text(
                                       'Quantity: $quantity',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF371f97),
-                                        fontWeight: FontWeight.bold,
+                                      style: const TextStyle(
+                                        fontSize: AppTypography.fontSizeMD,
+                                        color: AppColors.primary,
+                                        fontWeight: AppTypography.bold,
                                       ),
                                     ),
                                   ),
@@ -493,16 +523,16 @@ class _ItemCardState extends State<ItemCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   const Text(
                     'Categories',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: AppTypography.fontSizeLG,
+                      fontWeight: AppTypography.medium,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -510,48 +540,56 @@ class _ItemCardState extends State<ItemCard> {
                       return Chip(
                         label: Text(category),
                         backgroundColor: _getCategoryColor(category),
-                        labelStyle: const TextStyle(color: Colors.white),
+                        labelStyle: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: AppTypography.fontSizeMD,
+                          fontWeight: AppTypography.medium,
+                        ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   const Text(
                     'Item Types',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: AppTypography.fontSizeLG,
+                      fontWeight: AppTypography.medium,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor: Colors.purple[300],
-                        labelStyle: const TextStyle(color: Colors.white),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                        labelStyle: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: AppTypography.fontSizeMD,
+                          fontWeight: AppTypography.medium,
+                        ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   const Text(
                     'Description',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: AppTypography.fontSizeLG,
+                      fontWeight: AppTypography.medium,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     description.isEmpty
                         ? 'No description provided'
                         : description,
                     style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
+                      fontSize: AppTypography.fontSizeLG,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -566,13 +604,13 @@ class _ItemCardState extends State<ItemCard> {
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'donate':
-        return Colors.green[600]!;
+        return AppColors.donate;
       case 'recyclable':
-        return Colors.blue[600]!;
+        return AppColors.recyclable;
       case 'non-recyclable':
-        return Colors.orange[600]!;
+        return AppColors.nonRecyclable;
       default:
-        return Colors.grey[600]!;
+        return AppColors.grey;
     }
   }
 }

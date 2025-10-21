@@ -1,20 +1,20 @@
+import 'dart:io' show File;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/google_drive_service.dart';
 
-/// Conditional import for File (only for mobile)
-import 'dart:io' show File;
+import '../services/google_drive_service.dart';
 
 class ImageUploader {
   static final GoogleDriveService _driveService = GoogleDriveService();
 
   static Future<String?> pickAndUploadImage(BuildContext context) async {
-    print('Starting image upload process...');
+    debugPrint('Starting image upload process...');
     final ImagePicker picker = ImagePicker();
 
     try {
-      print('Picking image from gallery...');
+      debugPrint('Picking image from gallery...');
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1024,
@@ -23,15 +23,15 @@ class ImageUploader {
       );
 
       if (image == null) {
-        print('No image selected');
+        debugPrint('No image selected');
         return null;
       }
-      print('Image selected: ${image.path}');
+      debugPrint('Image selected: ${image.path}');
 
       // Generate filename
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String fileName = 'lost_found_$timestamp.jpg';
-      print('Generated filename: $fileName');
+      debugPrint('Generated filename: $fileName');
 
       // Handle file based on platform
       dynamic fileToUpload;
@@ -45,24 +45,29 @@ class ImageUploader {
       }
 
       // Upload to Google Drive
-      print('Starting upload to Google Drive...');
+      debugPrint('Starting upload to Google Drive...');
       final String? downloadURL =
           await _driveService.uploadFile(fileToUpload, fileName);
-      print('Received URL: $downloadURL');
+      debugPrint('Received URL: $downloadURL');
 
       if (downloadURL == null) {
-        print('Upload failed - no URL returned');
-        _showErrorSnackBar(context, 'Failed to upload image');
-        return null;
+        debugPrint('Upload failed - no URL returned');
+        if (context.mounted) {
+          _showErrorSnackBar(context, 'Failed to upload image');
+          return null;
+        }
       }
 
       return downloadURL;
     } catch (e, stackTrace) {
-      print('Error in image upload: $e');
-      print('Stack trace: $stackTrace');
-      _showErrorSnackBar(context, 'Failed to upload image');
-      return null;
+      debugPrint('Error in image upload: $e');
+      debugPrint('Stack trace: $stackTrace');
+      if (context.mounted) {
+        _showErrorSnackBar(context, 'Failed to upload image');
+        return null;
+      }
     }
+    return null;
   }
 
   static void _showErrorSnackBar(BuildContext context, String message) {

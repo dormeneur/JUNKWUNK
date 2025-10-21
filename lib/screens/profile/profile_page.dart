@@ -1,19 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../widgets/app_bar.dart';
 import '../login_page.dart';
 import 'edit_profile_page.dart';
-import '../../widgets/app_bar.dart';
 
 class ProfileUI extends StatefulWidget {
   const ProfileUI({super.key});
 
   @override
-  _ProfileUIState createState() => _ProfileUIState();
+  ProfileUIState createState() => ProfileUIState();
 }
 
-class _ProfileUIState extends State<ProfileUI> {
+class ProfileUIState extends State<ProfileUI> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLoading = true;
@@ -67,7 +68,8 @@ class _ProfileUIState extends State<ProfileUI> {
         }
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      debugPrint('Error loading user data: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading profile data')),
       );
@@ -104,7 +106,8 @@ class _ProfileUIState extends State<ProfileUI> {
           await _loadUserData();
         }
       } catch (e) {
-        print('Error updating user data: $e');
+        debugPrint('Error updating user data: $e');
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating profile')),
         );
@@ -129,13 +132,13 @@ class _ProfileUIState extends State<ProfileUI> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  primaryColor.withOpacity(0.9),
+                  primaryColor.withValues(alpha: 0.9),
                   primaryColor,
                 ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: primaryColor.withOpacity(0.5),
+                  color: primaryColor.withValues(alpha: 0.5),
                   blurRadius: 15,
                   offset: Offset(0, 8),
                 ),
@@ -147,7 +150,7 @@ class _ProfileUIState extends State<ProfileUI> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -170,7 +173,7 @@ class _ProfileUIState extends State<ProfileUI> {
                   'Are you sure you want to logout?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 16,
                   ),
                 ),
@@ -247,7 +250,7 @@ class _ProfileUIState extends State<ProfileUI> {
         );
       }
     } catch (e) {
-      print('Error signing out: $e');
+      debugPrint('Error signing out: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error signing out')),
@@ -302,11 +305,11 @@ class _ProfileUIState extends State<ProfileUI> {
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToEditPage,
         backgroundColor: primaryColor,
-        child: Icon(Icons.edit_rounded, color: Colors.white),
         elevation: 5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
+        child: Icon(Icons.edit_rounded, color: Colors.white),
       ),
     );
   }
@@ -318,7 +321,7 @@ class _ProfileUIState extends State<ProfileUI> {
         color: primaryColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
@@ -349,7 +352,7 @@ class _ProfileUIState extends State<ProfileUI> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: Offset(0, 3),
                         ),
@@ -387,13 +390,13 @@ class _ProfileUIState extends State<ProfileUI> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Colors.white.withOpacity(0.8), Colors.white],
+                    colors: [Colors.white.withValues(alpha: 0.8), Colors.white],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 15,
                       offset: Offset(0, 5),
                     ),
@@ -421,7 +424,7 @@ class _ProfileUIState extends State<ProfileUI> {
                       border: Border.all(color: Colors.white, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: Offset(0, 2),
                         ),
@@ -466,7 +469,7 @@ class _ProfileUIState extends State<ProfileUI> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: Offset(0, 2),
                 ),
@@ -504,8 +507,8 @@ class _ProfileUIState extends State<ProfileUI> {
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
             colors: [
-              Colors.green.withOpacity(0.05),
-              Colors.green.withOpacity(0.1)
+              Colors.green.withValues(alpha: 0.05),
+              Colors.green.withValues(alpha: 0.1)
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -516,11 +519,11 @@ class _ProfileUIState extends State<ProfileUI> {
             Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.15),
+                color: Colors.green.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.green.withOpacity(0.1),
+                    color: Colors.green.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),
@@ -577,11 +580,11 @@ class _ProfileUIState extends State<ProfileUI> {
             Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: iconColor.withOpacity(0.1),
+                    color: iconColor.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/design_constants.dart';
 
 class FilterButton extends StatelessWidget {
   final String label;
@@ -15,20 +16,32 @@ class FilterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: AppAnimations.fast,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.blue : Colors.white,
-          foregroundColor: isSelected ? Colors.white : Colors.blue,
+          backgroundColor: isSelected ? AppColors.primary : AppColors.white,
+          foregroundColor: isSelected ? AppColors.white : AppColors.primary,
           elevation: isSelected ? 2 : 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.blue.shade300),
+            borderRadius: AppBorders.borderRadiusXL,
+            side: BorderSide(
+              color: isSelected ? AppColors.primary : AppColors.greyLight,
+              width: AppBorders.borderWidthThin,
+            ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
         ),
-        child: Text(label),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: AppTypography.fontSizeMD,
+            fontWeight: isSelected ? AppTypography.semiBold : AppTypography.medium,
+          ),
+        ),
       ),
     );
   }

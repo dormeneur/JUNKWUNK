@@ -9,10 +9,10 @@ class BuyerDashboard1 extends StatefulWidget {
   const BuyerDashboard1({super.key});
 
   @override
-  _BuyerDashboard1State createState() => _BuyerDashboard1State();
+  BuyerDashboard1State createState() => BuyerDashboard1State();
 }
 
-class _BuyerDashboard1State extends State<BuyerDashboard1> {
+class BuyerDashboard1State extends State<BuyerDashboard1> {
   final PageController _pageController = PageController();
 
   @override
@@ -72,7 +72,7 @@ class _BuyerDashboard1State extends State<BuyerDashboard1> {
               Text(
                 "Welcome back!",
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   fontSize: 16,
                 ),
               ),
@@ -111,7 +111,7 @@ class _BuyerDashboard1State extends State<BuyerDashboard1> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.deepPurple.withOpacity(0.5),
+                  color: Colors.deepPurple.withValues(alpha: 0.5),
                   blurRadius: 15,
                   offset: Offset(0, 8),
                 ),
@@ -123,7 +123,7 @@ class _BuyerDashboard1State extends State<BuyerDashboard1> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -146,7 +146,7 @@ class _BuyerDashboard1State extends State<BuyerDashboard1> {
                   'Are you sure you want to logout?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 16,
                   ),
                 ),
@@ -220,7 +220,7 @@ class _BuyerDashboard1State extends State<BuyerDashboard1> {
             count: 3,
             effect: JumpingDotEffect(
               activeDotColor: Colors.white,
-              dotColor: Colors.white.withOpacity(0.2),
+              dotColor: Colors.white.withValues(alpha: 0.2),
               dotHeight: 18,
               dotWidth: 18,
               spacing: 12,

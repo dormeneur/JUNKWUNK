@@ -1,16 +1,18 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'widgets/map_controls.dart';
+
 import '../../services/api_keys.dart';
+import 'widgets/map_controls.dart';
 
 class ItemLocation extends StatefulWidget {
   final GeoPoint coordinates;
-  const ItemLocation({Key? key, required this.coordinates}) : super(key: key);
+  const ItemLocation({super.key, required this.coordinates});
 
   @override
   State<ItemLocation> createState() => _ItemLocationState();
@@ -51,7 +53,7 @@ class _ItemLocationState extends State<ItemLocation> {
         }
       }
     } catch (e) {
-      print("Error fetching user coordinates: $e");
+      debugPrint("Error fetching user coordinates: $e");
     }
 
     setState(() => isLoading = false);
