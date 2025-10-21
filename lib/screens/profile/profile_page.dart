@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../utils/custom_toast.dart';
 import '../../widgets/app_bar.dart';
 import '../login_page.dart';
 import 'edit_profile_page.dart';
@@ -70,9 +71,7 @@ class ProfileUIState extends State<ProfileUI> {
     } catch (e) {
       debugPrint('Error loading user data: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading profile data')),
-      );
+      CustomToast.showError(context, 'Error loading profile data');
     } finally {
       setState(() {
         isLoading = false;
@@ -108,9 +107,7 @@ class ProfileUIState extends State<ProfileUI> {
       } catch (e) {
         debugPrint('Error updating user data: $e');
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile')),
-        );
+        CustomToast.showError(context, 'Error updating profile');
       }
     }
   }

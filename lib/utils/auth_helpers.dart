@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'custom_toast.dart';
+
 class AuthHelpers {
   /// Helper method to handle post-authentication navigation
   static Future<void> handlePostAuthNavigation(BuildContext context) async {
@@ -12,10 +14,7 @@ class AuthHelpers {
       final User? user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Authentication issue. Please sign in again.')),
-        );
+        CustomToast.showError(context, 'Authentication issue. Please sign in again.');
         return;
       }
 
@@ -99,9 +98,7 @@ class AuthHelpers {
     } catch (e) {
       debugPrint('Error in handlePostAuthNavigation: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        CustomToast.showError(context, 'Error: $e');
 
         // Fallback to profile setup if there's an error
         Navigator.of(context).pushNamedAndRemoveUntil(

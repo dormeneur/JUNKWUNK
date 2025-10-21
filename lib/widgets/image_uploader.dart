@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../services/google_drive_service.dart';
+import '../utils/custom_toast.dart';
 
 class ImageUploader {
   static final GoogleDriveService _driveService = GoogleDriveService();
@@ -71,12 +72,6 @@ class ImageUploader {
   }
 
   static void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    CustomToast.showError(context, message);
   }
 }

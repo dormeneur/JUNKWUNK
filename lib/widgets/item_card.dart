@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/custom_toast.dart';
 import '../utils/design_constants.dart';
 
 class ItemCard extends StatefulWidget {
@@ -115,16 +116,7 @@ class _ItemCardState extends State<ItemCard> {
     // Check available quantity
     if (_availableQuantity != null && _availableQuantity! <= 0) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('This item is out of stock!'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: AppBorders.borderRadiusMD,
-            ),
-          ),
-        );
+        CustomToast.showError(context, 'This item is out of stock!');
       }
       return;
     }
@@ -132,16 +124,7 @@ class _ItemCardState extends State<ItemCard> {
     // Check if trying to add more than available
     if (_availableQuantity != null && _selectedQuantity > _availableQuantity!) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Only $_availableQuantity item(s) available!'),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: AppBorders.borderRadiusMD,
-            ),
-          ),
-        );
+        CustomToast.showWarning(context, 'Only $_availableQuantity item(s) available!');
       }
       return;
     }
@@ -164,16 +147,7 @@ class _ItemCardState extends State<ItemCard> {
       // Check if new quantity exceeds available quantity
       if (newQuantity > widget.quantity) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Cannot add more than ${widget.quantity} items!'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: AppBorders.borderRadiusMD,
-              ),
-            ),
-          );
+          CustomToast.showError(context, 'Cannot add more than ${widget.quantity} items!');
         }
         return;
       }
@@ -184,16 +158,7 @@ class _ItemCardState extends State<ItemCard> {
       });
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Updated cart! Now you have $newQuantity item(s)'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: AppBorders.borderRadiusMD,
-            ),
-          ),
-        );
+        CustomToast.showSuccess(context, 'Updated cart! Now you have $newQuantity item(s)');
 
         // Reload available quantity and notify parent
         _loadAvailableQuantity();
@@ -220,16 +185,7 @@ class _ItemCardState extends State<ItemCard> {
       });
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Added $_selectedQuantity item(s) to cart!'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: AppBorders.borderRadiusMD,
-            ),
-          ),
-        );
+        CustomToast.showSuccess(context, 'Added $_selectedQuantity item(s) to cart!');
 
         // Reload available quantity and notify parent
         _loadAvailableQuantity();

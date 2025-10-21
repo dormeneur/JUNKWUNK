@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/auth_helpers.dart';
+import '../utils/custom_toast.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -288,10 +289,7 @@ class LoginPage extends StatelessWidget {
           } else {
             debugPrint('DEBUG: User is null after animation completion');
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Authentication issue. Please try again.')),
-              );
+              CustomToast.showError(context, 'Authentication issue. Please try again.');
             }
           }
         },

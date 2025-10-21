@@ -1,9 +1,10 @@
-import 'package:app_settings/app_settings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+
+import '../../utils/custom_toast.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String name;
@@ -71,9 +72,7 @@ class EditProfilePageState extends State<EditProfilePage> {
     } catch (e) {
       debugPrint('Error saving changes: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving changes')),
-        );
+        CustomToast.showError(context, 'Error saving changes');
       }
     } finally {
       if (mounted) {
@@ -106,11 +105,7 @@ class EditProfilePageState extends State<EditProfilePage> {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Location services are disabled. Please enable location services.')),
-      );
+      CustomToast.showError(context, 'Location services are disabled. Please enable location services.');
       return;
     }
 
@@ -119,36 +114,14 @@ class EditProfilePageState extends State<EditProfilePage> {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Location permissions are denied. Please enable them in the app settings.'),
-            action: SnackBarAction(
-              label: 'Open Settings',
-              onPressed: () {
-                AppSettings.openAppSettings();
-              },
-            ),
-          ),
-        );
+        CustomToast.showWarning(context, 'Location permissions are denied. Please enable them in the app settings.');
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Location permissions are permanently denied. Please enable them in the app settings.'),
-          action: SnackBarAction(
-            label: 'Open Settings',
-            onPressed: () {
-              AppSettings.openAppSettings();
-            },
-          ),
-        ),
-      );
+      CustomToast.showWarning(context, 'Location permissions are permanently denied. Please enable them in the app settings.');
       return;
     }
 
@@ -168,9 +141,7 @@ class EditProfilePageState extends State<EditProfilePage> {
     } catch (e) {
       debugPrint('Error getting location: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error getting location')),
-      );
+      CustomToast.showError(context, 'Error getting location');
     }
   }
 
@@ -192,9 +163,7 @@ class EditProfilePageState extends State<EditProfilePage> {
             IconButton(
               icon: Icon(Icons.edit, color: Colors.white),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Profile is already in edit mode')),
-                );
+                CustomToast.showInfo(context, 'Profile is already in edit mode');
               },
             ),
           ],

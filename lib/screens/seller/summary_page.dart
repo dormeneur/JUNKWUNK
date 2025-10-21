@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../utils/custom_toast.dart';
 import '../../widgets/app_bar.dart';
 
 class SummaryPage extends StatelessWidget {
@@ -53,21 +54,11 @@ class SummaryPage extends StatelessWidget {
           .doc(itemId)
           .delete();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Item deleted successfully'),
-            backgroundColor: primaryColor,
-          ),
-        );
+        CustomToast.showSuccess(context, 'Item deleted successfully');
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting item: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomToast.showError(context, 'Error deleting item: $e');
       }
     }
   }

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 
+import '../../utils/custom_toast.dart';
 import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/image_uploader.dart';
@@ -140,30 +141,22 @@ class SellerDashboardState extends State<SellerDashboard> {
 
   Future<void> _saveToFirebase() async {
     if (_imageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please upload an image first')),
-      );
+      CustomToast.showError(context, 'Please upload an image first');
       return;
     }
 
     if (_selectedCategories.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select at least one category')),
-      );
+      CustomToast.showError(context, 'Please select at least one category');
       return;
     }
 
     if (_selectedItemTypes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an item type')),
-      );
+      CustomToast.showError(context, 'Please select an item type');
       return;
     }
 
     if (_priceController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a price quote')),
-      );
+      CustomToast.showError(context, 'Please enter a price quote');
       return;
     }
 
@@ -171,9 +164,7 @@ class SellerDashboardState extends State<SellerDashboard> {
     if (_quantityController.text.isEmpty ||
         int.tryParse(_quantityController.text) == null ||
         int.parse(_quantityController.text) < 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a valid quantity (minimum 1)')),
-      );
+      CustomToast.showError(context, 'Please enter a valid quantity (minimum 1)');
       return;
     }
 
@@ -184,9 +175,7 @@ class SellerDashboardState extends State<SellerDashboard> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You must be logged in to save data')),
-        );
+        CustomToast.showError(context, 'You must be logged in to save data');
         return;
       }
 
@@ -270,12 +259,7 @@ class SellerDashboardState extends State<SellerDashboard> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving item: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomToast.showError(context, 'Error saving item: $e');
       }
     }
   }

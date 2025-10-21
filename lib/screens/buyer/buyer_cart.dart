@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '/screens/buyer/item_location.dart';
+import '/utils/custom_toast.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -288,21 +289,11 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   }
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+    CustomToast.showError(context, message);
   }
 
   void _showSuccessSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: primaryColor,
-      ),
-    );
+    CustomToast.showSuccess(context, message);
   }
 
   @override

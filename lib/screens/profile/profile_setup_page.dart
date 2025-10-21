@@ -10,6 +10,7 @@ import 'package:lottie/lottie.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../services/api_keys.dart';
+import '../../utils/custom_toast.dart';
 import '../buyer/buyer_dashboard1.dart';
 import '../seller/seller_dashboard1.dart';
 
@@ -270,10 +271,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
         } else {
           debugPrint('!!!DEBUG: User is null, cannot update profile');
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('User not found. Please log in again.')),
-            );
+            CustomToast.showError(context, 'User not found. Please log in again.');
             setState(() {
               _isLoading = false;
             });
@@ -283,9 +281,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
         debugPrint('!!!DEBUG: Error saving profile: $e');
         debugPrint('!!!DEBUG: Error type: ${e.runtimeType}');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving profile: $e')),
-          );
+          CustomToast.showError(context, 'Error saving profile: $e');
           setState(() {
             _isLoading = false;
           });
@@ -295,9 +291,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
       }
     } else if (_selectedRole == null) {
       debugPrint('!!!DEBUG: No role selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a role')),
-      );
+      CustomToast.showError(context, 'Please select a role');
     } else {
       debugPrint('!!!DEBUG: Form validation failed');
     }
