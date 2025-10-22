@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-import '../login_page.dart';
+import '../../main.dart' as main_app;
+import '../../utils/colors.dart' as colors;
 import 'edit_profile_page.dart';
 
 class ProfileUI extends StatefulWidget {
@@ -17,35 +17,129 @@ class ProfileUIState extends State<ProfileUI> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // App theme colors
-  final Color primaryColor = const Color(0xFF132a13); // Dark green
-  final Color accentColor = const Color(0xFFecf39e); // Mindaro
+  // App theme colors from centralized colors.dart
+  final Color primaryColor = colors.AppColors.primaryColor;
+  final Color accentColor = colors.AppColors.lightAccent;
 
   @override
   void initState() {
     super.initState();
   }
 
-  Future<void> _signOut(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
-
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => LoginPage()),
-          (route) => false,
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color(0xFF132a13), // Dark green
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 16,
+          child: Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFF132a13), // Dark green background
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: const Color(0xFFecf39e), // Mindaro
+                    size: 40,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Log Out',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Are you sure you want to logout?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: const Color(0xFF666666),
+                          backgroundColor: const Color(0xFFecf39e), // Mindaro
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          main_app.handleLogout(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: const Color(0xFFFF3D00),
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
-      }
-    } catch (e) {
-      debugPrint('Error signing out: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error signing out')),
-        );
-      }
-    }
+      },
+    );
   }
 
   @override
@@ -104,7 +198,7 @@ class ProfileUIState extends State<ProfileUI> {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFD4E7C5), // Soft sage green
+          backgroundColor: colors.AppColors.scaffoldBackground,
           appBar: AppBar(
             elevation: 0,
             backgroundColor: primaryColor,
@@ -136,7 +230,7 @@ class ProfileUIState extends State<ProfileUI> {
               ),
               IconButton(
                 icon: const Icon(Icons.logout, size: 26),
-                onPressed: () => _signOut(context),
+                onPressed: () => _showLogoutConfirmation(context),
                 tooltip: 'Logout',
               ),
             ],

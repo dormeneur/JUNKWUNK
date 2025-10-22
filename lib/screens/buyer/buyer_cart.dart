@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '/screens/buyer/item_location.dart';
+import '/utils/colors.dart' as colors;
 import '/utils/custom_toast.dart';
 
 class BuyerCart extends StatefulWidget {
@@ -29,13 +30,12 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   late AnimationController _selectionController;
   final List<AnimationController> _itemControllers = [];
 
-  // Colors
-  final Color primaryColor = const Color(0xFF132a13); // Dark green
-  final Color lightAccent = const Color(
-      0xFFD4E7C5); // Soft sage green - complements dark green beautifully
-  final Color accentColor = const Color(0xFF90a955); // Moss green
-  final Color whiteColor = const Color(0xFFFFFFFF); // White
-  final Color blackColor = const Color(0xFF212121); // Near black
+  // Colors from centralized colors.dart
+  final Color primaryColor = colors.AppColors.primaryColor;
+  final Color lightAccent = colors.AppColors.scaffoldBackground;
+  final Color accentColor = colors.AppColors.accentColor;
+  final Color whiteColor = colors.AppColors.cardBackground;
+  final Color blackColor = colors.AppColors.textDark;
 
   @override
   void initState() {

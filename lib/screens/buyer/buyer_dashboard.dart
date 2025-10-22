@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../utils/colors.dart' as colors;
 import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/item_card.dart';
@@ -80,8 +81,7 @@ class BuyerDashboardState extends State<BuyerDashboard>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFD4E7C5), // Soft sage green - matches profile and cart
+      backgroundColor: colors.AppColors.scaffoldBackground,
       appBar: AppBarWidget(
         title: 'Browse Products',
         leading: IconButton(
@@ -252,8 +252,7 @@ class BuyerDashboardState extends State<BuyerDashboard>
   }
 
   Widget _buildItemsView(String? filterValue) {
-    // Unified sage green color throughout
-    const cardColor = Color(0xFFD4E7C5);
+    const cardColor = colors.AppColors.scaffoldBackground;
 
     return RefreshIndicator(
       onRefresh: () async {

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
 import '../../widgets/app_bar.dart';
 
@@ -15,11 +16,11 @@ class SummaryPage extends StatelessWidget {
   final bool isViewMode;
   final String? title;
 
-  // Custom color palette
-  static const Color primaryColor = Color(0xFF132a13); // Dark green
-  static const Color whiteColor = Color(0xFFFFFFFF); // White
-  static const Color blackColor = Color(0xFF212121); // Near black
-  static const Color greyColor = Color(0xFFecf39e); // Mindaro
+  // Use centralized colors from colors.dart
+  static const Color primaryColor = colors.AppColors.primaryColor;
+  static const Color whiteColor = colors.AppColors.cardBackground;
+  static const Color blackColor = colors.AppColors.textDark;
+  static const Color backgroundColor = colors.AppColors.scaffoldBackground;
 
   const SummaryPage.viewAll({super.key})
       : imageUrl = null,
@@ -66,7 +67,7 @@ class SummaryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: whiteColor,
+      backgroundColor: backgroundColor,
       appBar: AppBarWidget(
         title: 'Your Items',
         leading: IconButton(
@@ -88,7 +89,7 @@ class SummaryPage extends StatelessWidget {
       ),
       body: Container(
         decoration: BoxDecoration(
-          color: whiteColor,
+          color: backgroundColor,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -304,7 +305,7 @@ class SummaryPage extends StatelessWidget {
                     },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: greyColor,
+                        color: backgroundColor,
                         child: Icon(
                           Icons.image_not_supported,
                           size: 50,

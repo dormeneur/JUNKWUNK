@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
+import '../../utils/design_constants.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String name;
@@ -151,8 +153,7 @@ class EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFD4E7C5), // Soft sage green - matches profile page
+      backgroundColor: colors.AppColors.scaffoldBackground,
       extendBodyBehindAppBar:
           true, // This allows content to flow behind the AppBar
       appBar: PreferredSize(
@@ -162,7 +163,7 @@ class EditProfilePageState extends State<EditProfilePage> {
             "Edit Profile",
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: const Color(0xFF132a13), // Dark green
+          backgroundColor: colors.AppColors.primaryColor,
           iconTheme: IconThemeData(color: Colors.white),
           actions: [
             IconButton(
@@ -186,19 +187,20 @@ class EditProfilePageState extends State<EditProfilePage> {
                 Center(
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundColor: const Color(0xFF90a955), // Moss green
+                    backgroundColor: colors.AppColors.primaryColor,
                     child: Icon(Icons.person,
-                        size: 50, color: Color(0xFF132a13)), // Dark green
+                        size: 50, color: Colors.white),
                   ),
                 ),
                 SizedBox(height: 20),
                 Card(
                   elevation: 2,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppBorders.borderRadiusLG,
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: AppSpacing.paddingLG,
                     child: Column(
                       children: [
                         _buildTextField("Name", Icons.person, _nameController),
@@ -211,17 +213,21 @@ class EditProfilePageState extends State<EditProfilePage> {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: _isLoading ? null : _getCurrentLocation,
-                            icon: Icon(Icons.my_location, color: Colors.white),
+                            icon: Icon(Icons.my_location, color: AppColors.white),
                             label: Text(
                               "Use Current Location",
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontWeight: AppTypography.semiBold,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFF4f772d), // Fern green
-                              padding: EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: colors.AppColors.primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                vertical: AppSpacing.md,
+                              ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: AppBorders.borderRadiusMD,
                               ),
                             ),
                           ),
@@ -233,26 +239,25 @@ class EditProfilePageState extends State<EditProfilePage> {
                 SizedBox(height: 24),
                 SizedBox(
                   width: 200,
-                  height: 48,
+                  height: AppButtons.heightLG,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _saveChanges,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4f772d), // Fern green
-                      disabledBackgroundColor:
-                          const Color(0xFF90a955), // Moss green
-                      elevation: 3,
+                      backgroundColor: colors.AppColors.primaryColor,
+                      disabledBackgroundColor: AppColors.grey,
+                      elevation: 2,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: AppBorders.borderRadiusLG,
                       ),
                     ),
                     child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
+                        ? CircularProgressIndicator(color: AppColors.white)
                         : Text(
                             "Save Changes",
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              color: AppColors.white,
+                              fontSize: AppTypography.fontSizeLG,
+                              fontWeight: AppTypography.bold,
                             ),
                           ),
                   ),
@@ -267,18 +272,27 @@ class EditProfilePageState extends State<EditProfilePage> {
 
   Widget _buildEmailField() {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: AppSpacing.md),
       child: TextField(
         controller: _emailController,
         enabled: false,
         decoration: InputDecoration(
           labelText: "Email",
-          prefixIcon: Icon(Icons.email, color: Colors.grey),
+          prefixIcon: Icon(Icons.email, color: AppColors.textSecondary),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppBorders.borderRadiusMD,
           ),
           filled: true,
-          fillColor: Colors.grey[200],
+          fillColor: AppColors.greyLight,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
+          labelStyle: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: AppTypography.fontSizeMD,
+          ),
         ),
       ),
     );
@@ -290,16 +304,13 @@ class EditProfilePageState extends State<EditProfilePage> {
     TextEditingController controller,
   ) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: AppSpacing.md),
       child: TextField(
         controller: controller,
         enabled: !_isLoading,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF4f772d)), // Fern green
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+        decoration: AppInputs.inputDecoration(
+          label: label,
+          prefixIcon: Icon(icon, color: colors.AppColors.primaryColor),
         ),
       ),
     );

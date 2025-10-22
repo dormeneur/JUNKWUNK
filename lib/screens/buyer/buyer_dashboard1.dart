@@ -94,10 +94,10 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: Colors.white,
+              color: const Color(0xFF132a13), // Dark green background
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: Offset(0, 4),
                 ),
@@ -114,7 +114,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                   ),
                   child: Icon(
                     Icons.logout_rounded,
-                    color: Color(0xFF4f772d),
+                    color: const Color(0xFFecf39e), // Mindaro - light accent
                     size: 40,
                   ),
                 ),
@@ -122,7 +122,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                 Text(
                   'Log Out',
                   style: TextStyle(
-                    color: Color(0xFF1A1A1A),
+                    color: Colors.white,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -132,7 +132,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                   'Are you sure you want to logout?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Color(0xFF666666),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 16,
                   ),
                 ),

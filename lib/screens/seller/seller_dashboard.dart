@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 
+import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
 import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
@@ -164,7 +165,8 @@ class SellerDashboardState extends State<SellerDashboard> {
     if (_quantityController.text.isEmpty ||
         int.tryParse(_quantityController.text) == null ||
         int.parse(_quantityController.text) < 1) {
-      CustomToast.showError(context, 'Please enter a valid quantity (minimum 1)');
+      CustomToast.showError(
+          context, 'Please enter a valid quantity (minimum 1)');
       return;
     }
 
@@ -280,7 +282,7 @@ class SellerDashboardState extends State<SellerDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.AppColors.scaffoldBackground,
       appBar: AppBarWidget(
         title: 'List Your Item',
         leading: IconButton(
@@ -322,7 +324,7 @@ class SellerDashboardState extends State<SellerDashboard> {
       ),
       body: Container(
         decoration: const BoxDecoration(
-          color: AppColors.white,
+          color: colors.AppColors.scaffoldBackground,
         ),
         child: SingleChildScrollView(
           child: Padding(
@@ -386,7 +388,7 @@ class SellerDashboardState extends State<SellerDashboard> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Colors.white, // Keep cards white for contrast
         borderRadius: AppBorders.borderRadiusXL,
         boxShadow: AppShadows.shadow2,
       ),
@@ -505,7 +507,7 @@ class SellerDashboardState extends State<SellerDashboard> {
   Widget _buildFormSection() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Colors.white, // Keep form cards white for contrast
         borderRadius: AppBorders.borderRadiusXL,
         boxShadow: AppShadows.shadow2,
       ),
@@ -568,6 +570,7 @@ class SellerDashboardState extends State<SellerDashboard> {
         prefixIcon: Icon(
           Icons.title,
           color: AppColors.primary,
+          size: 20,
         ),
       ),
     );
@@ -581,10 +584,11 @@ class SellerDashboardState extends State<SellerDashboard> {
       decoration: AppInputs.inputDecoration(
         label: 'Description',
         prefixIcon: const Padding(
-          padding: EdgeInsets.only(bottom: 64),
+          padding: EdgeInsets.only(top: 12),
           child: Icon(
             Icons.description,
             color: AppColors.primary,
+            size: 20,
           ),
         ),
       ),
@@ -597,10 +601,11 @@ class SellerDashboardState extends State<SellerDashboard> {
       enabled: !_isSubmitting,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: AppInputs.inputDecoration(
-        label: 'Price(₹)',
+        label: 'Price',
         prefixIcon: const Icon(
           Icons.currency_rupee,
           color: AppColors.primary,
+          size: 20,
         ),
       ),
     );
@@ -613,9 +618,11 @@ class SellerDashboardState extends State<SellerDashboard> {
       keyboardType: TextInputType.number,
       decoration: AppInputs.inputDecoration(
         label: 'Quantity',
+        hint: 'Enter quantity',
         prefixIcon: const Icon(
           Icons.inventory_2_outlined,
           color: AppColors.primary,
+          size: 20,
         ),
       ),
     );

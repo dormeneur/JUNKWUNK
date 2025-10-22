@@ -19,7 +19,8 @@ class AppColors {
 
   // UI Element colors
   static const Color cardBackground = Color(0xFFFFFFFF);
-  static const Color scaffoldBackground = Color(0xFFF8F9FA);
+  static const Color scaffoldBackground = Color(0xFFD4E7C5); // Soft sage green
+  static const Color pageBackground = Color(0xFFD4E7C5); // Soft sage green
 
   // Category colors
   static const Color donateColor = Color(0xFF4f772d); // Fern green

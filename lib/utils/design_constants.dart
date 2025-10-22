@@ -303,7 +303,12 @@ class AppInputs {
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.secondary.withValues(alpha: 0.3),
+      fillColor: AppColors.white,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       border: OutlineInputBorder(
         borderRadius: AppBorders.borderRadiusMD,
         borderSide: const BorderSide(
@@ -339,8 +344,15 @@ class AppInputs {
           width: AppBorders.borderWidthMedium,
         ),
       ),
-      labelStyle: const TextStyle(color: AppColors.primary),
-      hintStyle: const TextStyle(color: AppColors.textHint),
+      labelStyle: const TextStyle(
+        color: AppColors.textSecondary,
+        fontSize: AppTypography.fontSizeMD,
+        fontWeight: FontWeight.normal,
+      ),
+      hintStyle: const TextStyle(
+        color: AppColors.textHint,
+        fontSize: AppTypography.fontSizeMD,
+      ),
     );
   }
 }
