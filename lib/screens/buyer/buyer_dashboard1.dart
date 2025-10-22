@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
 import '../../main.dart' as main_app;
 import 'mediator/page1.dart';
 import 'mediator/page2.dart';
@@ -20,7 +21,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF132a13), // Dark green - solid
+          color: Color(0xFF5d8a66), // Lighter forest green - solid
         ),
         child: SafeArea(
           child: Column(
@@ -94,7 +95,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: const Color(0xFF132a13), // Dark green background
+              color: const Color(0xFF5d8a66), // Lighter forest green background
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.3),
@@ -114,7 +115,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                   ),
                   child: Icon(
                     Icons.logout_rounded,
-                    color: const Color(0xFFecf39e), // Mindaro - light accent
+                    color: const Color(0xFFf4f7d9), // Lighter accent
                     size: 40,
                   ),
                 ),
@@ -144,8 +145,9 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: const Color(0xFF666666),
-          backgroundColor: const Color(0xFFecf39e), // Mindaro
+                          foregroundColor: const Color(0xFF3a3a3a),
+                          backgroundColor:
+                              const Color(0xFFf4f7d9), // Lighter accent
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
