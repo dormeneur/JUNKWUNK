@@ -12,11 +12,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Firebase packages (still using Firestore until DynamoDB migration)
-  firebase_core: ^3.9.0
-  firebase_storage: ^12.3.7
-  cloud_firestore: ^5.6.0
-
   # AWS Cognito Authentication
   amazon_cognito_identity_dart_2: ^3.0.0
 

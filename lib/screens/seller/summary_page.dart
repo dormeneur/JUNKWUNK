@@ -177,87 +177,85 @@ class _SummaryPageState extends State<SummaryPage> {
           }
         }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (activeItems.isNotEmpty) ...[
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: primaryColor.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.shopping_bag_outlined,
-                              color: primaryColor, size: 22),
-                          SizedBox(width: 8),
-                          Text(
-                            'Active Listings (${activeItems.length})',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (activeItems.isNotEmpty) ...[
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border:
+                        Border.all(color: primaryColor.withValues(alpha: 0.2)),
                   ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: activeItems.length,
-                    itemBuilder: (context, index) {
-                      return _buildItemCard(context, activeItems[index]);
-                    },
-                  ),
-                ],
-                if (soldItems.isNotEmpty) ...[
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: Colors.green.withValues(alpha: 0.2)),
+                  child: Row(
+                    children: [
+                      Icon(Icons.shopping_bag_outlined,
+                          color: primaryColor, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Active Listings (${activeItems.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.check_circle_outline,
-                              color: Colors.green[700], size: 22),
-                          SizedBox(width: 8),
-                          Text(
-                            'Sold Items (${soldItems.length})',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                        ],
+                    ],
+                  ),
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: activeItems.length,
+                itemBuilder: (context, index) {
+                  return _buildItemCard(context, activeItems[index]);
+                },
+              ),
+            ],
+            if (soldItems.isNotEmpty) ...[
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border:
+                        Border.all(color: Colors.green.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: Colors.green[700], size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Sold Items (${soldItems.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: soldItems.length,
-                    itemBuilder: (context, index) {
-                      return _buildItemCard(context, soldItems[index]);
-                    },
-                  ),
-                ],
-              ],
-            );
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: soldItems.length,
+                itemBuilder: (context, index) {
+                  return _buildItemCard(context, soldItems[index]);
+                },
+              ),
+            ],
+          ],
+        );
       },
     );
   }

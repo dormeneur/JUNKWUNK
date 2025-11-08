@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -10,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../services/api_keys.dart';
+import '../../services/api_service.dart';
 import '../../utils/custom_toast.dart';
 import '../buyer/buyer_dashboard1.dart';
 import '../seller/seller_dashboard1.dart';
@@ -124,25 +124,21 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
 
       if (userId != null && userId.isNotEmpty) {
         try {
-          final userDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userId)
-              .get();
+          final userData = await ApiService.getUser(userId);
 
-          if (userDoc.exists && mounted) {
-            final data = userDoc.data();
+          if (userData != null && mounted) {
             setState(() {
-              if (data?['displayName'] != null) {
-                _nameController.text = data!['displayName'];
+              if (userData['displayName'] != null) {
+                _nameController.text = userData['displayName'];
               }
-              if (data?['phone'] != null) {
-                _phoneController.text = data!['phone'];
+              if (userData['phone'] != null) {
+                _phoneController.text = userData['phone'];
               }
-              if (data?['location'] != null) {
-                _locationController.text = data!['location'];
+              if (userData['location'] != null) {
+                _locationController.text = userData['location'];
               }
-              if (data?['role'] != null && _selectedRole == null) {
-                _selectedRole = data!['role'];
+              if (userData['role'] != null && _selectedRole == null) {
+                _selectedRole = userData['role'];
               }
             });
           }
@@ -200,7 +196,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
           // Add a short delay for better UX
           await Future.delayed(const Duration(milliseconds: 800));
 
-          // Try to update Firestore but continue if it fails
+          // Try to update via API but continue if it fails
           try {
             // Get coordinates from address for storing
             List<Location> locations =
@@ -220,25 +216,23 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
               'role': _selectedRole,
               'profileCompleted': true,
               'creditPoints': _selectedRole == 'buyer' ? 50 : 0,
-              'updatedAt': FieldValue.serverTimestamp(),
+              'updatedAt': DateTime.now().toIso8601String(),
             };
 
             // Add coordinates if available
             if (latitude != null && longitude != null) {
-              userData['coordinates'] = GeoPoint(latitude, longitude);
+              userData['coordinates'] = {
+                'lat': latitude,
+                'lng': longitude,
+              };
             }
 
-            // No photo URL for Cognito users (can be added later if needed)
+            // Update user via API
+            await ApiService.updateUser(userId, userData);
 
-            // Update user document in Firestore
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .set(userData, SetOptions(merge: true));
-
-            debugPrint('!!!DEBUG: Firestore update completed successfully');
-          } catch (firestoreError) {
-            debugPrint('!!!DEBUG: Firestore error: $firestoreError');
+            debugPrint('!!!DEBUG: API update completed successfully');
+          } catch (apiError) {
+            debugPrint('!!!DEBUG: API error: $apiError');
             // Show error but continue with navigation
             if (mounted) {}
           }

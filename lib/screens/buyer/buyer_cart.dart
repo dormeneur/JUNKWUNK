@@ -77,32 +77,35 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         onTimeout: () => throw TimeoutException('Connection timeout'),
       );
 
-      final items = cartData.map((item) {
-        try {
-          return CartItem(
-            id: item['itemId'] ?? '',
-            sellerId: item['sellerId'] ?? '',
-            itemId: item['itemId'] ?? '',
-            title: item['title'] ?? 'Unknown Item',
-            description: item['description'] ?? '',
-            imageUrl: item['imageUrl'] ?? '',
-            categories: List<String>.from(item['categories'] ?? []),
-            price: (item['price'] ?? 0.0).toDouble(),
-            quantity: item['quantity'] ?? 1,
-            sellerName: item['sellerName'] ?? 'Unknown Seller',
-            city: item['city'] ?? 'Unknown City',
-            coordinates: item['coordinates'] != null 
-                ? MapCoordinates(
-                    latitude: item['coordinates']['lat'] ?? 0.0,
-                    longitude: item['coordinates']['lng'] ?? 0.0,
-                  )
-                : MapCoordinates(latitude: 0.0, longitude: 0.0),
-          );
-        } catch (e) {
-          debugPrint('Error parsing cart item: $e');
-          return null;
-        }
-      }).whereType<CartItem>().toList();
+      final items = cartData
+          .map((item) {
+            try {
+              return CartItem(
+                id: item['itemId'] ?? '',
+                sellerId: item['sellerId'] ?? '',
+                itemId: item['itemId'] ?? '',
+                title: item['title'] ?? 'Unknown Item',
+                description: item['description'] ?? '',
+                imageUrl: item['imageUrl'] ?? '',
+                categories: List<String>.from(item['categories'] ?? []),
+                price: (item['price'] ?? 0.0).toDouble(),
+                quantity: item['quantity'] ?? 1,
+                sellerName: item['sellerName'] ?? 'Unknown Seller',
+                city: item['city'] ?? 'Unknown City',
+                coordinates: item['coordinates'] != null
+                    ? MapCoordinates(
+                        latitude: item['coordinates']['lat'] ?? 0.0,
+                        longitude: item['coordinates']['lng'] ?? 0.0,
+                      )
+                    : MapCoordinates(latitude: 0.0, longitude: 0.0),
+              );
+            } catch (e) {
+              debugPrint('Error parsing cart item: $e');
+              return null;
+            }
+          })
+          .whereType<CartItem>()
+          .toList();
 
       if (mounted) {
         setState(() {

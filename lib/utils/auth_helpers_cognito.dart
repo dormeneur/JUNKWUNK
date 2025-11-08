@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/api_service.dart';
 import 'custom_toast.dart';
 
 /// Auth Helpers for AWS Cognito
@@ -37,39 +37,29 @@ class AuthHelpersCognito {
       await prefs.setBool('user_logged_out', false);
 
       try {
-        // Check if user document exists
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .get();
+        // Check if user exists via API
+        final userData = await ApiService.getUser(userId);
 
-        // If user document doesn't exist yet, create one with basic info
-        if (!userDoc.exists) {
-          await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        // If user doesn't exist yet, create one with basic info
+        if (userData == null) {
+          await ApiService.updateUser(userId, {
             'email': userEmail,
-            'createdAt': FieldValue.serverTimestamp(),
+            'createdAt': DateTime.now().toIso8601String(),
             'profileCompleted': false, // Explicitly mark as incomplete
             'authProvider': 'cognito',
-          }, SetOptions(merge: true));
+          });
         }
 
         // Get the latest user data after possible creation
-        final latestUserDoc = !userDoc.exists
-            ? await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .get()
-            : userDoc;
-
-        final userData = latestUserDoc.data();
+        final latestUserData = userData ?? await ApiService.getUser(userId);
 
         // Check if user has a role and completed profile
-        if (userData != null &&
-            userData.containsKey('role') &&
-            userData.containsKey('profileCompleted') &&
-            userData['profileCompleted'] == true) {
+        if (latestUserData != null &&
+            latestUserData.containsKey('role') &&
+            latestUserData.containsKey('profileCompleted') &&
+            latestUserData['profileCompleted'] == true) {
           // User has completed profile, navigate to dashboard
-          final userRole = userData['role'] as String;
+          final userRole = latestUserData['role'] as String;
 
           if (context.mounted) {
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -80,8 +70,8 @@ class AuthHelpersCognito {
         } else {
           // User profile is incomplete - direct to profile setup page
           String? existingRole;
-          if (userData != null && userData.containsKey('role')) {
-            existingRole = userData['role'] as String?;
+          if (latestUserData != null && latestUserData.containsKey('role')) {
+            existingRole = latestUserData['role'] as String?;
           }
 
           if (context.mounted) {
@@ -92,10 +82,10 @@ class AuthHelpersCognito {
             );
           }
         }
-      } catch (firestoreError) {
-        // Handle Firestore errors by proceeding to profile setup
+      } catch (apiError) {
+        // Handle API errors by proceeding to profile setup
         debugPrint(
-            'Firestore error in handlePostAuthNavigation: $firestoreError');
+            'API error in handlePostAuthNavigation: $apiError');
 
         if (context.mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil(

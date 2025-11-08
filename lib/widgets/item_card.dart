@@ -84,7 +84,7 @@ class _ItemCardState extends State<ItemCard> {
       // Calculate quantity already in cart for this item
       int quantityInCart = 0;
       for (var item in cartItems) {
-        if (item['itemId'] == widget.itemId && 
+        if (item['itemId'] == widget.itemId &&
             item['sellerId'] == widget.sellerId) {
           quantityInCart += (item['quantity'] ?? 0) as int;
         }
@@ -157,7 +157,8 @@ class _ItemCardState extends State<ItemCard> {
       }
     } else {
       if (context.mounted) {
-        CustomToast.showError(context, 'Failed to add to cart. Please try again.');
+        CustomToast.showError(
+            context, 'Failed to add to cart. Please try again.');
       }
     }
 
