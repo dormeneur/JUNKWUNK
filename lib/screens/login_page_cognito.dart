@@ -85,6 +85,13 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
       await prefs.setString('cognito_user_email', data.name);
       await prefs.setBool('user_logged_out', false);
 
+      // Store Cognito tokens for API calls
+      await prefs.setString('cognito_id_token', result['userId']);
+      await prefs.setString('cognito_access_token', result['accessToken']);
+      if (result['refreshToken'] != null) {
+        await prefs.setString('cognito_refresh_token', result['refreshToken']);
+      }
+
       // Get user ID from Cognito
       final userId = _authService.getCurrentUserId();
       if (userId == null) {
@@ -182,6 +189,13 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('cognito_user_email', data.name!);
       await prefs.setBool('user_logged_out', false);
+
+      // Store Cognito tokens for API calls
+      await prefs.setString('cognito_id_token', signInResult['userId']);
+      await prefs.setString('cognito_access_token', signInResult['accessToken']);
+      if (signInResult['refreshToken'] != null) {
+        await prefs.setString('cognito_refresh_token', signInResult['refreshToken']);
+      }
 
       // Get user ID
       final userId = _authService.getCurrentUserId();

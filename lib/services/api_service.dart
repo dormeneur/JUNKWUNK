@@ -17,11 +17,18 @@ class ApiService {
   static Future<String?> _getIdToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('cognito_user_id');
-      final email = prefs.getString('cognito_user_email');
+      
+      // First try to get the stored ID token
+      final storedToken = prefs.getString('cognito_id_token');
+      if (storedToken != null && storedToken.isNotEmpty) {
+        print('Using stored ID token');
+        return storedToken;
+      }
 
-      if (userId == null || email == null) {
-        print('User not logged in');
+      // Fallback: Try to get session from Cognito (for older sessions)
+      final email = prefs.getString('cognito_user_email');
+      if (email == null) {
+        print('User not logged in - no email');
         return null;
       }
 
@@ -30,11 +37,17 @@ class ApiService {
 
       final session = await cognitoUser.getSession();
       if (session == null || !session.isValid()) {
-        print('Session invalid');
+        print('Session invalid or null');
         return null;
       }
 
-      return session.getIdToken().getJwtToken();
+      // Store the token for next time
+      final token = session.getIdToken().getJwtToken();
+      if (token != null) {
+        await prefs.setString('cognito_id_token', token);
+      }
+      
+      return token;
     } catch (e) {
       print('Error getting ID token: $e');
       return null;
