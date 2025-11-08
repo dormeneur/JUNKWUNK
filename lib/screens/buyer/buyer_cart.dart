@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '/screens/buyer/item_location.dart';
 import '/utils/colors.dart' as colors;
@@ -18,7 +18,7 @@ class BuyerCart extends StatefulWidget {
 
 class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final userId = FirebaseAuth.instance.currentUser?.uid;
+  String? userId;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
   List<CartItem> cartItems = [];
@@ -42,7 +42,17 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _initializeAnimations();
-    _loadCartItems();
+    _loadUserAndCart();
+  }
+
+  Future<void> _loadUserAndCart() async {
+    // Load Cognito user ID from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    userId = prefs.getString('cognito_user_id');
+
+    if (mounted) {
+      _loadCartItems();
+    }
   }
 
   void _initializeAnimations() {

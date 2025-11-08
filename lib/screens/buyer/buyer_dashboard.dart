@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/colors.dart' as colors;
 import '../../utils/design_constants.dart';
@@ -54,7 +54,8 @@ class BuyerDashboardState extends State<BuyerDashboard>
   }
 
   Future<void> loadCartItemCount() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('cognito_user_id');
     if (userId != null) {
       final cartSnapshot = await _firestore
           .collection('users')

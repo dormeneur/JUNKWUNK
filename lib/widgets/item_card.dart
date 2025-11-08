@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/custom_toast.dart';
 import '../utils/design_constants.dart';
@@ -69,7 +69,8 @@ class _ItemCardState extends State<ItemCard> {
   }
 
   Future<void> _loadAvailableQuantity() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('cognito_user_id');
     if (userId == null || widget.sellerId == null) {
       setState(() {
         _availableQuantity = widget.quantity;
@@ -107,7 +108,8 @@ class _ItemCardState extends State<ItemCard> {
 
   Future<void> _addToCart(
       BuildContext context, String sellerId, String itemId) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('cognito_user_id');
     if (userId == null) return;
 
     setState(() {
