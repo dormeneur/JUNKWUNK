@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
@@ -19,6 +20,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // Load environment variables from .env file
+    await dotenv.load(fileName: ".env");
+    debugPrint("Environment variables loaded from .env");
+
     // Initialize Firebase (still needed for Firestore)
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

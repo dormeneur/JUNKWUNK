@@ -3,22 +3,22 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 /// AWS S3 Upload Service
 /// Handles image uploads to S3 bucket with direct PUT requests
 ///
-/// ⚠️ IMPORTANT: AWS credentials should be provided via environment variables
-/// for production use. Hardcoding credentials is a security risk.
+/// ⚠️ IMPORTANT: AWS credentials are loaded from .env file
+/// Make sure .env file contains AWS_ACCESS_KEY and AWS_SECRET_KEY
 class S3Service {
   static const String _bucketName = 'junkwunk-images-ap-south-1';
   static const String _region = 'ap-south-1';
 
-  // AWS credentials MUST be provided via environment variables
-  // Run with: flutter run --dart-define=AWS_ACCESS_KEY=your_key --dart-define=AWS_SECRET_KEY=your_secret
-  static const String _accessKey = String.fromEnvironment('AWS_ACCESS_KEY');
-  static const String _secretKey = String.fromEnvironment('AWS_SECRET_KEY');
+  // AWS credentials loaded from .env file
+  static String get _accessKey => dotenv.env['AWS_ACCESS_KEY'] ?? '';
+  static String get _secretKey => dotenv.env['AWS_SECRET_KEY'] ?? '';
 
   /// Upload file to S3
   /// Returns the S3 object key (path) on success, null on failure

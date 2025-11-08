@@ -50,4 +50,7 @@ android/app/google-services.json
 lib/services/api_keys.dart
 android/app/src/main/AndroidManifest.xml
 
+# Environment variables
+.env
+
 web/index.html
