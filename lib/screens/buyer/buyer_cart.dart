@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '/screens/buyer/item_location.dart';
 import '/utils/colors.dart' as colors;
 import '/utils/custom_toast.dart';
+import '/widgets/s3_image.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -486,12 +487,12 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   Widget _buildItemImage(String imageUrl) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        imageUrl,
+      child: S3Image(
+        imageKey: imageUrl,
         width: 80,
         height: 80,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
+        errorWidget: Container(
           width: 80,
           height: 80,
           color: lightAccent,

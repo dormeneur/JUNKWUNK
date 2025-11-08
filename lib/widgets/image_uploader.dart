@@ -4,13 +4,14 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../services/google_drive_service.dart';
+import '../services/s3_service.dart';
 import '../utils/custom_toast.dart';
 
 class ImageUploader {
-  static final GoogleDriveService _driveService = GoogleDriveService();
+  static final S3Service _s3Service = S3Service();
 
-  static Future<String?> pickAndUploadImage(BuildContext context) async {
+  static Future<String?> pickAndUploadImage(BuildContext context,
+      {String folder = 'images'}) async {
     debugPrint('Starting image upload process...');
     final ImagePicker picker = ImagePicker();
 
@@ -29,11 +30,6 @@ class ImageUploader {
       }
       debugPrint('Image selected: ${image.path}');
 
-      // Generate filename
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String fileName = 'lost_found_$timestamp.jpg';
-      debugPrint('Generated filename: $fileName');
-
       // Handle file based on platform
       dynamic fileToUpload;
       if (kIsWeb) {
@@ -45,21 +41,22 @@ class ImageUploader {
         fileToUpload = File(image.path);
       }
 
-      // Upload to Google Drive
-      debugPrint('Starting upload to Google Drive...');
-      final String? downloadURL =
-          await _driveService.uploadFile(fileToUpload, fileName);
-      debugPrint('Received URL: $downloadURL');
+      // Upload to S3
+      debugPrint('Starting upload to S3...');
+      final String? objectKey =
+          await _s3Service.uploadImage(fileToUpload, folder);
+      debugPrint('Received S3 key: $objectKey');
 
-      if (downloadURL == null) {
-        debugPrint('Upload failed - no URL returned');
+      if (objectKey == null) {
+        debugPrint('Upload failed - no key returned');
         if (context.mounted) {
           _showErrorSnackBar(context, 'Failed to upload image');
           return null;
         }
       }
 
-      return downloadURL;
+      // Return the S3 object key (we'll get the URL when displaying)
+      return objectKey;
     } catch (e, stackTrace) {
       debugPrint('Error in image upload: $e');
       debugPrint('Stack trace: $stackTrace');

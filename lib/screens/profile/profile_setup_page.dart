@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../services/api_keys.dart';
@@ -118,24 +118,23 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
 
   Future<void> _tryLoadUserData() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+      // Get user ID directly from SharedPreferences (stored during login)
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('cognito_user_id');
+
+      if (userId != null && userId.isNotEmpty) {
         try {
           final userDoc = await FirebaseFirestore.instance
               .collection('users')
-              .doc(user.uid)
+              .doc(userId)
               .get();
 
           if (userDoc.exists && mounted) {
             final data = userDoc.data();
             setState(() {
-              // Load display name from user profile first, then from Firestore if not available
-              if (user.displayName != null && user.displayName!.isNotEmpty) {
-                _nameController.text = user.displayName!;
-              } else if (data?['displayName'] != null) {
+              if (data?['displayName'] != null) {
                 _nameController.text = data!['displayName'];
               }
-
               if (data?['phone'] != null) {
                 _phoneController.text = data!['phone'];
               }
@@ -176,10 +175,26 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
       debugPrint('!!!DEBUG: Selected role: $_selectedRole');
 
       try {
-        final user = FirebaseAuth.instance.currentUser;
-        debugPrint('!!!DEBUG: Current user: ${user?.uid}');
+        // Get user ID directly from SharedPreferences (stored during login)
+        final prefs = await SharedPreferences.getInstance();
+        final userId = prefs.getString('cognito_user_id');
+        final email = prefs.getString('cognito_user_email');
 
-        if (user != null) {
+        if (userId == null || email == null) {
+          debugPrint('!!!DEBUG: No userId or email found in SharedPreferences');
+          if (mounted) {
+            CustomToast.showError(
+                context, 'User not found. Please log in again.');
+            setState(() {
+              _isLoading = false;
+            });
+          }
+          return;
+        }
+
+        debugPrint('!!!DEBUG: Current user ID: $userId');
+
+        if (userId.isNotEmpty) {
           debugPrint('!!!DEBUG: Attempting to update Firestore document');
 
           // Add a short delay for better UX
@@ -213,20 +228,12 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
               userData['coordinates'] = GeoPoint(latitude, longitude);
             }
 
-            // Update profile photo URL if available
-            if (user.photoURL != null) {
-              userData['photoURL'] = user.photoURL;
-            }
-
-            // Update user profile in Firebase Auth
-            await user.updateProfile(
-              displayName: _nameController.text,
-            );
+            // No photo URL for Cognito users (can be added later if needed)
 
             // Update user document in Firestore
             await FirebaseFirestore.instance
                 .collection('users')
-                .doc(user.uid)
+                .doc(userId)
                 .set(userData, SetOptions(merge: true));
 
             debugPrint('!!!DEBUG: Firestore update completed successfully');
@@ -271,7 +278,8 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
         } else {
           debugPrint('!!!DEBUG: User is null, cannot update profile');
           if (mounted) {
-            CustomToast.showError(context, 'User not found. Please log in again.');
+            CustomToast.showError(
+                context, 'User not found. Please log in again.');
             setState(() {
               _isLoading = false;
             });
@@ -356,8 +364,9 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color:
-                    isSelected ? primaryColor.withValues(alpha: 0.8) : Colors.black54,
+                color: isSelected
+                    ? primaryColor.withValues(alpha: 0.8)
+                    : Colors.black54,
               ),
             ),
           ],
@@ -528,7 +537,8 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
                                             color: primaryColor, width: 2),
                                       ),
                                       filled: true,
-                                      fillColor: accentColor.withValues(alpha: 0.2),
+                                      fillColor:
+                                          accentColor.withValues(alpha: 0.2),
                                       labelStyle:
                                           TextStyle(color: primaryColor),
                                     ),
@@ -556,7 +566,8 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
                                             color: primaryColor, width: 2),
                                       ),
                                       filled: true,
-                                      fillColor: accentColor.withValues(alpha: 0.2),
+                                      fillColor:
+                                          accentColor.withValues(alpha: 0.2),
                                       labelStyle:
                                           TextStyle(color: primaryColor),
                                     ),
@@ -593,8 +604,8 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
                                                     width: 2),
                                               ),
                                               filled: true,
-                                              fillColor:
-                                                  accentColor.withValues(alpha: 0.2),
+                                              fillColor: accentColor.withValues(
+                                                  alpha: 0.2),
                                               labelStyle: TextStyle(
                                                   color: primaryColor),
                                             ),

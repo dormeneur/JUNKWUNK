@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../utils/custom_toast.dart';
 import '../utils/design_constants.dart';
+import 's3_image.dart';
 
 class ItemCard extends StatefulWidget {
   final String itemId;
@@ -238,27 +239,9 @@ class _ItemCardState extends State<ItemCard> {
                     ),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
-                      child: Image.network(
-                        widget.imageUrl,
+                      child: S3Image(
+                        imageKey: widget.imageUrl,
                         fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppColors.primary,
-                              ),
-                              strokeWidth: 3,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.image_not_supported,
-                                size: 50, color: Colors.grey),
-                          );
-                        },
                       ),
                     ),
                   ),
@@ -603,18 +586,16 @@ class _ItemCardState extends State<ItemCard> {
                 maxScale: 4,
                 child: Hero(
                   tag: 'fullscreen-${widget.itemId}',
-                  child: Image.network(
-                    imageUrl,
+                  child: S3Image(
+                    imageKey: imageUrl,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 300,
-                        height: 300,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image_not_supported,
-                            size: 50, color: Colors.grey),
-                      );
-                    },
+                    errorWidget: Container(
+                      width: 300,
+                      height: 300,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.image_not_supported,
+                          size: 50, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),
