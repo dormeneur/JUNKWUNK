@@ -42,7 +42,7 @@ class _ItemLocationState extends State<ItemLocation> {
       // Get userId from SharedPreferences (Cognito)
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('cognito_user_id');
-      
+
       if (userId != null && userId.isNotEmpty) {
         final doc = await FirebaseFirestore.instance
             .collection('users')
