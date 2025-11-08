@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../main.dart' as main_app;
 import '../../utils/colors.dart' as colors;
 import 'edit_profile_page.dart';
 
@@ -14,8 +13,9 @@ class ProfileUI extends StatefulWidget {
 }
 
 class ProfileUIState extends State<ProfileUI> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String? _userId;
+  String? _userEmail;
 
   // App theme colors from centralized colors.dart
   final Color primaryColor = colors.AppColors.primaryColor;
@@ -24,6 +24,15 @@ class ProfileUIState extends State<ProfileUI> {
   @override
   void initState() {
     super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userId = prefs.getString('cognito_user_id');
+      _userEmail = prefs.getString('cognito_user_email');
+    });
   }
 
   void _showLogoutConfirmation(BuildContext context) {
@@ -110,9 +119,20 @@ class ProfileUIState extends State<ProfileUI> {
                     SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.of(context).pop();
-                          main_app.handleLogout(context);
+                          // Logout and clear session
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('user_logged_out', true);
+                          await prefs.remove('cognito_user_email');
+                          await prefs.remove('cognito_user_id');
+
+                          if (context.mounted) {
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/login',
+                              (Route<dynamic> route) => false,
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
@@ -144,9 +164,8 @@ class ProfileUIState extends State<ProfileUI> {
 
   @override
   Widget build(BuildContext context) {
-    User? currentUser = _auth.currentUser;
-
-    if (currentUser == null) {
+    // Use stored userId from Cognito
+    if (_userId == null || _userId!.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Profile'),
@@ -159,7 +178,7 @@ class ProfileUIState extends State<ProfileUI> {
     }
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: _firestore.collection('users').doc(currentUser.uid).snapshots(),
+      stream: _firestore.collection('users').doc(_userId).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
@@ -176,7 +195,7 @@ class ProfileUIState extends State<ProfileUI> {
         // Default values while loading or if no data
         String userType = "";
         String name = "";
-        String email = currentUser.email ?? "";
+        String email = _userEmail ?? "";
         String phone = "";
         String location = "";
         bool isVerifiedByNGO = true;

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
@@ -48,12 +48,15 @@ class EditProfilePageState extends State<EditProfilePage> {
     });
 
     try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
+      // Get userId from SharedPreferences (Cognito)
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('cognito_user_id');
+
+      if (userId != null && userId.isNotEmpty) {
         // Update Firestore
         await FirebaseFirestore.instance
             .collection('users')
-            .doc(currentUser.uid)
+            .doc(userId)
             .update({
           'displayName': _nameController.text,
           'phone': _phoneController.text,
@@ -188,8 +191,7 @@ class EditProfilePageState extends State<EditProfilePage> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: colors.AppColors.primaryColor,
-                    child: Icon(Icons.person,
-                        size: 50, color: Colors.white),
+                    child: Icon(Icons.person, size: 50, color: Colors.white),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -213,7 +215,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: _isLoading ? null : _getCurrentLocation,
-                            icon: Icon(Icons.my_location, color: AppColors.white),
+                            icon:
+                                Icon(Icons.my_location, color: AppColors.white),
                             label: Text(
                               "Use Current Location",
                               style: TextStyle(
