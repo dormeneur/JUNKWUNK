@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/custom_toast.dart';
 import '../utils/design_constants.dart';
+import '../services/api_service.dart';
 import 's3_image.dart';
 
 class ItemCard extends StatefulWidget {
@@ -16,7 +16,6 @@ class ItemCard extends StatefulWidget {
   final List<String> itemTypes;
   final String price;
   final int quantity;
-  final Timestamp? timestamp;
   final VoidCallback? onCartUpdated;
   final String status;
   final String city;
@@ -34,7 +33,6 @@ class ItemCard extends StatefulWidget {
     required this.price,
     required this.city,
     this.quantity = 1,
-    this.timestamp,
     this.onCartUpdated,
     this.status = 'active',
     this.refreshTrigger,
@@ -80,18 +78,16 @@ class _ItemCardState extends State<ItemCard> {
     }
 
     try {
-      // Get total quantity already in cart for this item
-      final cartSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('cart')
-          .where('itemId', isEqualTo: widget.itemId)
-          .where('sellerId', isEqualTo: widget.sellerId)
-          .get();
+      // Get cart items via API
+      final cartItems = await ApiService.getCart();
 
+      // Calculate quantity already in cart for this item
       int quantityInCart = 0;
-      for (var doc in cartSnapshot.docs) {
-        quantityInCart += (doc.data()['quantity'] ?? 0) as int;
+      for (var item in cartItems) {
+        if (item['itemId'] == widget.itemId && 
+            item['sellerId'] == widget.sellerId) {
+          quantityInCart += (item['quantity'] ?? 0) as int;
+        }
       }
 
       setState(() {
@@ -121,6 +117,9 @@ class _ItemCardState extends State<ItemCard> {
       if (context.mounted) {
         CustomToast.showError(context, 'This item is out of stock!');
       }
+      setState(() {
+        _isAddingToCart = false;
+      });
       return;
     }
 
@@ -130,66 +129,24 @@ class _ItemCardState extends State<ItemCard> {
         CustomToast.showWarning(
             context, 'Only $_availableQuantity item(s) available!');
       }
+      setState(() {
+        _isAddingToCart = false;
+      });
       return;
     }
 
-    // Check if item already exists in cart
-    final existingCartItems = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('cart')
-        .where('itemId', isEqualTo: itemId)
-        .where('sellerId', isEqualTo: sellerId)
-        .get();
+    // Add to cart via API
+    final success = await ApiService.addToCart(
+      itemId: itemId,
+      sellerId: sellerId,
+      quantity: _selectedQuantity,
+    );
 
-    if (existingCartItems.docs.isNotEmpty) {
-      // Item already exists, update quantity
-      final existingDoc = existingCartItems.docs.first;
-      final existingQuantity = existingDoc.data()['quantity'] ?? 0;
-      final newQuantity = existingQuantity + _selectedQuantity;
+    setState(() {
+      _isAddingToCart = false;
+    });
 
-      // Check if new quantity exceeds available quantity
-      if (newQuantity > widget.quantity) {
-        if (context.mounted) {
-          CustomToast.showError(
-              context, 'Cannot add more than ${widget.quantity} items!');
-        }
-        return;
-      }
-
-      await existingDoc.reference.update({
-        'quantity': newQuantity,
-        'timestamp': Timestamp.now(),
-      });
-
-      if (context.mounted) {
-        CustomToast.showSuccess(
-            context, 'Updated cart! Now you have $newQuantity item(s)');
-
-        // Reload available quantity and notify parent
-        _loadAvailableQuantity();
-        widget.onCartUpdated?.call();
-      }
-    } else {
-      // Add new item to cart
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('cart')
-          .add({
-        'sellerId': sellerId,
-        'itemId': itemId,
-        'timestamp': Timestamp.now(),
-        'title': widget.title,
-        'description': widget.description,
-        'imageUrl': widget.imageUrl,
-        'categories': widget.categories,
-        'itemTypes': widget.itemTypes,
-        'price': widget.price,
-        'quantity': _selectedQuantity,
-        'status': widget.status,
-      });
-
+    if (success) {
       if (context.mounted) {
         CustomToast.showSuccess(
             context, 'Added $_selectedQuantity item(s) to cart!');
@@ -198,12 +155,15 @@ class _ItemCardState extends State<ItemCard> {
         _loadAvailableQuantity();
         widget.onCartUpdated?.call();
       }
+    } else {
+      if (context.mounted) {
+        CustomToast.showError(context, 'Failed to add to cart. Please try again.');
+      }
     }
 
     // Reset selected quantity
     setState(() {
       _selectedQuantity = 1;
-      _isAddingToCart = false;
     });
   }
 

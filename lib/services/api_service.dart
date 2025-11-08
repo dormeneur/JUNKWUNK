@@ -114,7 +114,8 @@ class ApiService {
         if (sellerId != null) 'sellerId': sellerId,
       };
 
-      final uri = Uri.parse('$baseUrl/items').replace(queryParameters: queryParams);
+      final uri =
+          Uri.parse('$baseUrl/items').replace(queryParameters: queryParams);
       final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
@@ -148,6 +149,76 @@ class ApiService {
     } catch (e) {
       print('Get item exception: $e');
       return null;
+    }
+  }
+
+  /// Create new item
+  static Future<Map<String, dynamic>?> createItem(
+    Map<String, dynamic> itemData,
+  ) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/items'),
+        headers: headers,
+        body: json.encode(itemData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        print('Create item error: ${response.statusCode} ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Create item exception: $e');
+      return null;
+    }
+  }
+
+  /// Update existing item
+  static Future<Map<String, dynamic>?> updateItem(
+    String itemId,
+    Map<String, dynamic> itemData,
+  ) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/items/$itemId'),
+        headers: headers,
+        body: json.encode(itemData),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print('Update item error: ${response.statusCode} ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Update item exception: $e');
+      return null;
+    }
+  }
+
+  /// Delete item
+  static Future<bool> deleteItem(String itemId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/items/$itemId'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      } else {
+        print('Delete item error: ${response.statusCode} ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Delete item exception: $e');
+      return false;
     }
   }
 
@@ -217,7 +288,8 @@ class ApiService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print('Remove from cart error: ${response.statusCode} ${response.body}');
+        print(
+            'Remove from cart error: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {

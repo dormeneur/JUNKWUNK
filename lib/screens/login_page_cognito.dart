@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/aws_cognito_auth_service.dart';
+import '../services/api_service.dart';
 import '../utils/auth_helpers_cognito.dart';
 import '../utils/custom_toast.dart';
 import 'email_verification_page.dart';
@@ -96,20 +96,17 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
 
       debugPrint('AWS Cognito: Sign in successful, userId: $userId');
 
-      // Check if user profile exists in Firestore
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
+      // Check if user profile exists in DynamoDB via API
+      final userData = await ApiService.getUser(userId);
 
-      if (!userDoc.exists) {
-        // Create user document in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+      if (userData == null) {
+        // Create user document in DynamoDB via API
+        await ApiService.updateUser(userId, {
           'email': data.name,
-          'createdAt': FieldValue.serverTimestamp(),
-          'authProvider': 'cognito', // Mark as Cognito user
+          'createdAt': DateTime.now().toIso8601String(),
+          'authProvider': 'cognito',
         });
-        debugPrint('AWS Cognito: Created Firestore user document');
+        debugPrint('AWS Cognito: Created DynamoDB user document via API');
       }
 
       return null;
@@ -195,14 +192,14 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
       // Store userId for later use
       await prefs.setString('cognito_user_id', userId);
 
-      // Create user document in Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+      // Create user document in DynamoDB via API
+      await ApiService.updateUser(userId, {
         'email': data.name!,
-        'createdAt': FieldValue.serverTimestamp(),
+        'createdAt': DateTime.now().toIso8601String(),
         'authProvider': 'cognito',
       });
 
-      debugPrint('AWS Cognito: User document created in Firestore');
+      debugPrint('AWS Cognito: User document created in DynamoDB via API');
 
       return null;
     } catch (e) {

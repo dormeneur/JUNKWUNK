@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,10 +7,18 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/api_keys.dart';
+import '../../services/api_service.dart';
 import 'widgets/map_controls.dart';
 
+class MapCoordinates {
+  final double latitude;
+  final double longitude;
+
+  MapCoordinates({required this.latitude, required this.longitude});
+}
+
 class ItemLocation extends StatefulWidget {
-  final GeoPoint coordinates;
+  final MapCoordinates coordinates;
   const ItemLocation({super.key, required this.coordinates});
 
   @override
@@ -44,14 +51,11 @@ class _ItemLocationState extends State<ItemLocation> {
       final userId = prefs.getString('cognito_user_id');
 
       if (userId != null && userId.isNotEmpty) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .get();
+        final userData = await ApiService.getUser(userId);
 
-        if (doc.exists && doc.data()?['coordinates'] != null) {
-          final GeoPoint geo = doc['coordinates'];
-          userLocation = LatLng(geo.latitude, geo.longitude);
+        if (userData != null && userData['coordinates'] != null) {
+          final coords = userData['coordinates'];
+          userLocation = LatLng(coords['lat'] ?? 0.0, coords['lng'] ?? 0.0);
           await fetchRoute();
         }
       }

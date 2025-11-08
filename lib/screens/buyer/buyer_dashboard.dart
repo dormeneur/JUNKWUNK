@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +5,7 @@ import '../../utils/colors.dart' as colors;
 import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/item_card.dart';
+import '../../services/api_service.dart';
 import '../profile/profile_page.dart';
 import 'buyer_cart.dart';
 
@@ -18,7 +18,6 @@ class BuyerDashboard extends StatefulWidget {
 
 class BuyerDashboardState extends State<BuyerDashboard>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ValueNotifier<int> cartItemCount = ValueNotifier<int>(0);
   final ValueNotifier<int> refreshTrigger = ValueNotifier<int>(0);
   late TabController _tabController;
@@ -57,17 +56,12 @@ class BuyerDashboardState extends State<BuyerDashboard>
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('cognito_user_id');
     if (userId != null) {
-      final cartSnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('cart')
-          .get();
+      final cartItems = await ApiService.getCart();
 
       // Calculate total items considering quantities
       int totalItems = 0;
-      for (var doc in cartSnapshot.docs) {
-        final data = doc.data();
-        totalItems += (data['quantity'] ?? 1) as int;
+      for (var item in cartItems) {
+        totalItems += (item['quantity'] ?? 1) as int;
       }
 
       // Update ValueNotifier instead of calling setState
@@ -257,15 +251,16 @@ class BuyerDashboardState extends State<BuyerDashboard>
 
     return RefreshIndicator(
       onRefresh: () async {
-        // Refresh cart count
+        // Refresh cart count and items
         await loadCartItemCount();
+        setState(() {}); // Trigger rebuild
         // Small delay for smooth UX
         await Future.delayed(const Duration(milliseconds: 300));
       },
       color: AppColors.primary,
       backgroundColor: cardColor,
-      child: StreamBuilder<QuerySnapshot>(
-        stream: _buildItemsStreamFiltered(filterValue),
+      child: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _loadItems(filterValue),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -280,7 +275,7 @@ class BuyerDashboardState extends State<BuyerDashboard>
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return ListView(
               children: [
                 SizedBox(
@@ -321,38 +316,24 @@ class BuyerDashboardState extends State<BuyerDashboard>
 
           return ListView.builder(
             padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: snapshot.data!.docs.length,
+            itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              final doc = snapshot.data!.docs[index];
-              final data = doc.data() as Map<String, dynamic>;
-              final sellerId = doc.reference.parent.parent?.id;
+              final item = snapshot.data![index];
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: sellerId != null
-                    ? _firestore.collection('sellers').doc(sellerId).get()
-                    : null,
-                builder: (context, sellerSnapshot) {
-                  final city = sellerSnapshot.hasData
-                      ? sellerSnapshot.data!['city'] ?? 'Unknown Location'
-                      : 'Unknown Location';
-
-                  return ItemCard(
-                    key: ValueKey('${doc.id}-${refreshTrigger.value}'),
-                    itemId: doc.id,
-                    sellerId: sellerId,
-                    imageUrl: data['imageUrl'] ?? '',
-                    title: data['title'] ?? 'Untitled Item',
-                    description: data['description'] ?? 'No description',
-                    categories: List<String>.from(data['categories'] ?? []),
-                    itemTypes: List<String>.from(data['itemTypes'] ?? []),
-                    price: (data['price'] ?? 0.0).toString(),
-                    quantity: data['quantity'] ?? 1,
-                    timestamp: data['timestamp'] as Timestamp?,
-                    city: city,
-                    onCartUpdated: loadCartItemCount,
-                    refreshTrigger: refreshTrigger,
-                  );
-                },
+              return ItemCard(
+                key: ValueKey('${item['itemId']}-${refreshTrigger.value}'),
+                itemId: item['itemId'],
+                sellerId: item['sellerId'],
+                imageUrl: item['imageUrl'] ?? '',
+                title: item['title'] ?? 'Untitled Item',
+                description: item['description'] ?? 'No description',
+                categories: List<String>.from(item['categories'] ?? []),
+                itemTypes: List<String>.from(item['itemTypes'] ?? []),
+                price: (item['price'] ?? 0.0).toString(),
+                quantity: item['quantity'] ?? 1,
+                city: item['city'] ?? 'Unknown Location',
+                onCartUpdated: loadCartItemCount,
+                refreshTrigger: refreshTrigger,
               );
             },
           );
@@ -361,15 +342,16 @@ class BuyerDashboardState extends State<BuyerDashboard>
     );
   }
 
-  Stream<QuerySnapshot> _buildItemsStreamFiltered(String? filterValue) {
-    var query = _firestore
-        .collectionGroup('items')
-        .where('status', isEqualTo: 'active');
-
-    if (filterValue != null) {
-      query = query.where('categories', arrayContains: filterValue);
+  Future<List<Map<String, dynamic>>> _loadItems(String? filterValue) async {
+    try {
+      // Call API to get items with optional category filter
+      return await ApiService.getItems(
+        category: filterValue,
+        status: 'active',
+      );
+    } catch (e) {
+      debugPrint('Error loading items: $e');
+      return [];
     }
-
-    return query.orderBy('timestamp', descending: true).snapshots();
   }
 }

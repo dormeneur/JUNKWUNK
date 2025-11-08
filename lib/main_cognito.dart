@@ -1,16 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'firebase_options.dart';
 import 'screens/buyer/buyer_dashboard1.dart';
 import 'screens/login_page_cognito.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/profile/profile_setup_page.dart';
 import 'screens/seller/seller_dashboard1.dart';
 import 'services/aws_cognito_auth_service.dart';
+import 'services/api_service.dart';
 import 'utils/design_constants.dart';
 
 bool _userLoggedOut = false;
@@ -24,11 +22,7 @@ void main() async {
     await dotenv.load(fileName: ".env");
     debugPrint("Environment variables loaded from .env");
 
-    // Initialize Firebase (still needed for Firestore)
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    debugPrint("Firebase initialized successfully (Firestore only)");
+    // Note: Firebase removed - now using AWS DynamoDB + S3 + Cognito
 
     // Check if user has manually logged out
     final prefs = await SharedPreferences.getInstance();
@@ -102,8 +96,8 @@ class MyAppCognito extends StatelessWidget {
             return const LoginPageCognito();
           }
 
-          // User is authenticated, check Firestore profile
-          return FutureBuilder<DocumentSnapshot>(
+          // User is authenticated, check DynamoDB profile via API
+          return FutureBuilder<Map<String, dynamic>?>(
             future: _getUserProfile(),
             builder: (context, userSnapshot) {
               if (userSnapshot.connectionState == ConnectionState.waiting) {
@@ -112,15 +106,14 @@ class MyAppCognito extends StatelessWidget {
                 );
               }
 
-              if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+              if (!userSnapshot.hasData || userSnapshot.data == null) {
                 // No profile found, show profile setup
                 return ProfileSetupPage(
                   email: _cognitoUserEmail ?? '',
                 );
               }
 
-              final userData =
-                  userSnapshot.data!.data() as Map<String, dynamic>;
+              final userData = userSnapshot.data!;
 
               // Check if user has a role
               if (!userData.containsKey('role')) {
@@ -181,8 +174,8 @@ class MyAppCognito extends StatelessWidget {
     }
   }
 
-  // Get user profile from Firestore using stored userId
-  Future<DocumentSnapshot> _getUserProfile() async {
+  // Get user profile from DynamoDB using stored userId
+  Future<Map<String, dynamic>?> _getUserProfile() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('cognito_user_id');
@@ -191,7 +184,7 @@ class MyAppCognito extends StatelessWidget {
         throw Exception('No user ID found in storage');
       }
 
-      return FirebaseFirestore.instance.collection('users').doc(userId).get();
+      return await ApiService.getUser(userId);
     } catch (e) {
       debugPrint('Error getting user profile: $e');
       rethrow;
@@ -228,7 +221,7 @@ Future<void> handleLogoutCognito(BuildContext context) async {
 }
 
 Widget _buildDashboard(String role) {
-  return FutureBuilder<DocumentSnapshot>(
+  return FutureBuilder<Map<String, dynamic>?>(
     future: () async {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('cognito_user_id');
@@ -237,7 +230,7 @@ Widget _buildDashboard(String role) {
         throw Exception('No user ID found');
       }
 
-      return FirebaseFirestore.instance.collection('users').doc(userId).get();
+      return await ApiService.getUser(userId);
     }(),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -245,7 +238,7 @@ Widget _buildDashboard(String role) {
           body: Center(child: CircularProgressIndicator()),
         );
       }
-      if (!snapshot.hasData || !snapshot.data!.exists) {
+      if (!snapshot.hasData || snapshot.data == null) {
         return const LoginPageCognito();
       }
       return role == 'seller' ? SellerDashboard1() : BuyerDashboard1();

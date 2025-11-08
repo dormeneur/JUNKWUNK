@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +7,7 @@ import '/screens/buyer/item_location.dart';
 import '/utils/colors.dart' as colors;
 import '/utils/custom_toast.dart';
 import '/widgets/s3_image.dart';
+import '/services/api_service.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -17,7 +17,6 @@ class BuyerCart extends StatefulWidget {
 }
 
 class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? userId;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
@@ -72,87 +71,42 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     setState(() => _isLoading = true);
 
     try {
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('cart')
-          .get()
-          .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw TimeoutException('Connection timeout'),
-          );
-
-      final items = await Future.wait(
-        snapshot.docs.map((doc) async {
-          try {
-            final sellerId = doc.get('sellerId');
-            final itemId = doc.get('itemId');
-
-            // Get seller document first
-            final sellerDoc =
-                await _firestore.collection('sellers').doc(sellerId).get();
-
-            if (!sellerDoc.exists) {
-              debugPrint('Seller document not found for ID: $sellerId');
-              return null;
-            }
-
-            // Get item document
-            final itemData = await _firestore
-                .collection('sellers')
-                .doc(sellerId)
-                .collection('items')
-                .doc(itemId)
-                .get();
-
-            if (!itemData.exists) {
-              debugPrint('Item document not found for ID: $itemId');
-              return null;
-            }
-
-            final sellerData = sellerDoc.data()!;
-            final originalItemData = itemData.data()!;
-
-            // Handle coordinates - check both separate fields and GeoPoint
-            GeoPoint? coordinates;
-            if (sellerData['coordinates'] is GeoPoint) {
-              coordinates = sellerData['coordinates'] as GeoPoint;
-            } else if (sellerData['latitude'] != null &&
-                sellerData['longitude'] != null) {
-              coordinates = GeoPoint(
-                (sellerData['latitude'] as num).toDouble(),
-                (sellerData['longitude'] as num).toDouble(),
-              );
-            }
-
-            debugPrint(
-                'Fetched coordinates for seller $sellerId: ${coordinates?.latitude}, ${coordinates?.longitude}');
-
-            return CartItem(
-              id: doc.id,
-              itemId: itemId,
-              sellerId: sellerId,
-              title: originalItemData['title'] ?? '',
-              description: originalItemData['description'] ?? '',
-              imageUrl: originalItemData['imageUrl'] ?? '',
-              categories:
-                  List<String>.from(originalItemData['categories'] ?? []),
-              price: (originalItemData['price'] ?? 0.0).toDouble(),
-              quantity: doc.get('quantity') ?? 1,
-              sellerName: sellerData['name'] ?? 'Unknown Seller',
-              city: sellerData['city'] ?? 'Location not available',
-              coordinates: coordinates ?? GeoPoint(0.0, 0.0),
-            );
-          } catch (e) {
-            debugPrint('Error loading item ${doc.id}: $e');
-            return null;
-          }
-        }),
+      // Get cart items via API
+      final cartData = await ApiService.getCart().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw TimeoutException('Connection timeout'),
       );
+
+      final items = cartData.map((item) {
+        try {
+          return CartItem(
+            id: item['itemId'] ?? '',
+            sellerId: item['sellerId'] ?? '',
+            itemId: item['itemId'] ?? '',
+            title: item['title'] ?? 'Unknown Item',
+            description: item['description'] ?? '',
+            imageUrl: item['imageUrl'] ?? '',
+            categories: List<String>.from(item['categories'] ?? []),
+            price: (item['price'] ?? 0.0).toDouble(),
+            quantity: item['quantity'] ?? 1,
+            sellerName: item['sellerName'] ?? 'Unknown Seller',
+            city: item['city'] ?? 'Unknown City',
+            coordinates: item['coordinates'] != null 
+                ? MapCoordinates(
+                    latitude: item['coordinates']['lat'] ?? 0.0,
+                    longitude: item['coordinates']['lng'] ?? 0.0,
+                  )
+                : MapCoordinates(latitude: 0.0, longitude: 0.0),
+          );
+        } catch (e) {
+          debugPrint('Error parsing cart item: $e');
+          return null;
+        }
+      }).whereType<CartItem>().toList();
 
       if (mounted) {
         setState(() {
-          cartItems = items.whereType<CartItem>().toList();
+          cartItems = items;
           _isLoading = false;
         });
         _updateItemControllers();
@@ -212,22 +166,21 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         );
       }
 
-      // Remove from Firestore
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('cart')
-          .doc(item.id)
-          .delete();
+      // Remove from cart via API
+      final success = await ApiService.removeFromCart(item.itemId);
 
-      // Update local state
-      setState(() {
-        cartItems.removeAt(index);
-        if (_itemControllers.length > index) {
-          _itemControllers[index].dispose();
-          _itemControllers.removeAt(index);
-        }
-      });
+      if (success) {
+        // Update local state
+        setState(() {
+          cartItems.removeAt(index);
+          if (_itemControllers.length > index) {
+            _itemControllers[index].dispose();
+            _itemControllers.removeAt(index);
+          }
+        });
+      } else {
+        _showErrorSnackbar('Failed to remove item');
+      }
     } catch (e) {
       _showErrorSnackbar('Error removing item');
     } finally {
@@ -240,59 +193,24 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     _isProcessing = true;
 
     try {
-      final batch = _firestore.batch();
+      // Get item IDs for checkout
+      final itemIdsToCheckout = selectedItems.toList();
 
-      for (var itemId in selectedItems) {
-        final item = cartItems.firstWhere((item) => item.id == itemId);
+      // Call checkout API
+      final result = await ApiService.checkout(itemIdsToCheckout);
 
-        // Get the current item quantity from seller's collection
-        final itemRef = _firestore
-            .collection('sellers')
-            .doc(item.sellerId)
-            .collection('items')
-            .doc(item.itemId);
+      if (result != null) {
+        // Update UI
+        setState(() {
+          cartItems.removeWhere((item) => selectedItems.contains(item.itemId));
+          selectedItems.clear();
+          isSelectionMode = false;
+        });
 
-        final itemDoc = await itemRef.get();
-        if (itemDoc.exists) {
-          final currentQuantity = itemDoc.data()?['quantity'] ?? 0;
-          final newQuantity = currentQuantity - item.quantity;
-
-          // Update the item quantity or set status to inactive if out of stock
-          if (newQuantity <= 0) {
-            batch.update(itemRef, {
-              'quantity': 0,
-              'status': 'inactive', // Mark as inactive when out of stock
-            });
-          } else {
-            batch.update(itemRef, {
-              'quantity': newQuantity,
-            });
-          }
-        }
-
-        // Create purchase record
-        final purchaseRef = _firestore.collection('purchases').doc();
-        batch.set(purchaseRef, item.toPurchaseMap(userId!));
-
-        // Remove from cart
-        final cartRef = _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('cart')
-            .doc(item.id);
-        batch.delete(cartRef);
+        _showSuccessSnackbar('Checkout successful!');
+      } else {
+        _showErrorSnackbar('Checkout failed. Please try again.');
       }
-
-      await batch.commit();
-
-      // Update UI
-      setState(() {
-        cartItems.removeWhere((item) => selectedItems.contains(item.id));
-        selectedItems.clear();
-        isSelectionMode = false;
-      });
-
-      _showSuccessSnackbar('Checkout successful!');
     } catch (e) {
       debugPrint('Error processing checkout: $e');
       _showErrorSnackbar('Error processing checkout: ${e.toString()}');
@@ -670,6 +588,13 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   }
 }
 
+class MapCoordinates {
+  final double latitude;
+  final double longitude;
+
+  MapCoordinates({required this.latitude, required this.longitude});
+}
+
 class CartItem {
   final String id;
   final String itemId;
@@ -680,9 +605,9 @@ class CartItem {
   final List<String> categories;
   final double price;
   final int quantity;
-  final String sellerName; // Added missing field
+  final String sellerName;
   final String city;
-  final GeoPoint coordinates; // Added missing field
+  final MapCoordinates coordinates;
 
   CartItem({
     required this.id,
@@ -698,41 +623,4 @@ class CartItem {
     required this.city,
     required this.coordinates,
   });
-
-  factory CartItem.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return CartItem(
-      id: doc.id,
-      itemId: data['itemId'] ?? '',
-      sellerId: data['sellerId'] ?? '',
-      title: data['title'] ?? '',
-      description: data['description'] ?? '',
-      imageUrl: data['imageUrl'] ?? '',
-      categories: List<String>.from(data['categories'] ?? []),
-      price: (data['price'] ?? 0.0).toDouble(),
-      quantity: data['quantity'] ?? 0,
-      sellerName: data['sellerName'] ?? 'Unknown Seller',
-      city: data['city'] ?? 'Location not available',
-      coordinates:
-          data['coordinates'] ?? GeoPoint(0.0, 0.0), // Added missing field
-    );
-  }
-
-  Map<String, dynamic> toPurchaseMap(String userId) {
-    return {
-      'userId': userId,
-      'sellerId': sellerId,
-      'itemId': itemId,
-      'timestamp': Timestamp.now(),
-      'status': 'completed',
-      'title': title,
-      'description': description,
-      'categories': categories,
-      'imageUrl': imageUrl,
-      'quantity': quantity,
-      'price': price,
-      'sellerName': sellerName, // Added missing field
-      'city': city, // Added missing field
-    };
-  }
 }
