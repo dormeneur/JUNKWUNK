@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +8,7 @@ import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/image_uploader.dart';
 import '../../widgets/s3_image.dart';
+import '../../services/api_service.dart';
 import 'summary_page.dart';
 
 class SellerDashboard extends StatefulWidget {
@@ -167,7 +167,6 @@ class SellerDashboardState extends State<SellerDashboard> {
       // Get current user ID from SharedPreferences (Cognito user)
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('cognito_user_id');
-      final userEmail = prefs.getString('cognito_user_email');
 
       if (userId == null) {
         setState(() {
@@ -179,49 +178,28 @@ class SellerDashboardState extends State<SellerDashboard> {
         return;
       }
 
-      // Fetch user's coordinates and name from Firestore
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
+      // Fetch user's coordinates and name from API
+      final userData = await ApiService.getUser(userId);
 
       String? cityName;
-      String? userName;
-      GeoPoint? coordinates;
 
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'];
-        coordinates = userDoc.data()?['coordinates'] as GeoPoint?;
+      if (userData != null && userData['coordinates'] != null) {
+        final coordinates = userData['coordinates'];
+        final lat = coordinates['lat'];
+        final lng = coordinates['lng'];
 
-        if (coordinates != null) {
-          try {
-            final placemarks = await placemarkFromCoordinates(
-              coordinates.latitude,
-              coordinates.longitude,
-            );
-            if (placemarks.isNotEmpty) {
-              cityName = placemarks.first.locality;
-            }
-          } catch (e) {
-            debugPrint('Error getting city name: $e');
+        try {
+          final placemarks = await placemarkFromCoordinates(lat, lng);
+          if (placemarks.isNotEmpty) {
+            cityName = placemarks.first.locality;
           }
+        } catch (e) {
+          debugPrint('Error getting city name: $e');
         }
       }
 
-      final sellerDoc =
-          FirebaseFirestore.instance.collection('sellers').doc(userId);
-
-      // Save seller info with city
-      await sellerDoc.set({
-        'name': userName ?? "Unknown Seller",
-        'email': userEmail ?? "No contact info",
-        'city': cityName,
-        'coordinates': coordinates,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      // Save item with additional details
-      await sellerDoc.collection('items').add({
+      // Create item via API
+      final itemData = {
         'imageUrl': _imageUrl,
         'categories': _selectedCategories,
         'itemTypes': [
@@ -232,9 +210,21 @@ class SellerDashboardState extends State<SellerDashboard> {
         'description': _descriptionController.text.trim(),
         'price': double.tryParse(_priceController.text) ?? 0.0,
         'quantity': int.parse(_quantityController.text),
-        'timestamp': FieldValue.serverTimestamp(),
-        'status': 'active'
-      });
+        'status': 'active',
+        'city': cityName ?? 'Unknown',
+      };
+
+      final createdItem = await ApiService.createItem(itemData);
+
+      if (createdItem == null) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        if (mounted) {
+          CustomToast.showError(context, 'Failed to create item');
+        }
+        return;
+      }
 
       setState(() {
         _isSubmitting = false;

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,8 +5,9 @@ import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/s3_image.dart';
+import '../../services/api_service.dart';
 
-class SummaryPage extends StatelessWidget {
+class SummaryPage extends StatefulWidget {
   final String? imageUrl;
   final List<String>? selectedCategories;
   final String? description;
@@ -16,12 +16,6 @@ class SummaryPage extends StatelessWidget {
   final String? quantity;
   final bool isViewMode;
   final String? title;
-
-  // Use centralized colors from colors.dart
-  static const Color primaryColor = colors.AppColors.primaryColor;
-  static const Color whiteColor = colors.AppColors.cardBackground;
-  static const Color blackColor = colors.AppColors.textDark;
-  static const Color backgroundColor = colors.AppColors.scaffoldBackground;
 
   const SummaryPage.viewAll({super.key})
       : imageUrl = null,
@@ -44,26 +38,36 @@ class SummaryPage extends StatelessWidget {
     this.quantity = "1",
   }) : isViewMode = false;
 
-  Future<void> _deleteItem(BuildContext context, String itemId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('cognito_user_id');
-    if (userId == null) return;
+  @override
+  State<SummaryPage> createState() => _SummaryPageState();
+}
 
+class _SummaryPageState extends State<SummaryPage> {
+  // Use centralized colors from colors.dart
+  static const Color primaryColor = colors.AppColors.primaryColor;
+  static const Color backgroundColor = colors.AppColors.scaffoldBackground;
+
+  Future<void> _deleteItem(BuildContext context, String itemId) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('sellers')
-          .doc(userId)
-          .collection('items')
-          .doc(itemId)
-          .delete();
+      await ApiService.deleteItem(itemId);
       if (context.mounted) {
         CustomToast.showSuccess(context, 'Item deleted successfully');
+        setState(() {}); // Refresh the list
       }
     } catch (e) {
       if (context.mounted) {
         CustomToast.showError(context, 'Error deleting item: $e');
       }
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _loadItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('cognito_user_id');
+    if (userId == null) return [];
+
+    final items = await ApiService.getItems(sellerId: userId);
+    return items;
   }
 
   @override
@@ -89,16 +93,22 @@ class SummaryPage extends StatelessWidget {
         ),
         backgroundColor: primaryColor,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAllItemsList(context),
-            ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {}); // Trigger rebuild to reload items
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+          ),
+          child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAllItemsList(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -106,87 +116,66 @@ class SummaryPage extends StatelessWidget {
   }
 
   Widget _buildAllItemsList(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: SharedPreferences.getInstance()
-          .then((prefs) => prefs.getString('cognito_user_id')),
-      builder: (context, userSnapshot) {
-        if (userSnapshot.connectionState == ConnectionState.waiting) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _loadItems(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(color: primaryColor),
           );
         }
 
-        final userId = userSnapshot.data;
-        if (userId == null) {
-          return Center(child: Text('Not logged in'));
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
         }
 
-        return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('sellers')
-              .doc(userId)
-              .collection('items')
-              .orderBy('timestamp', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(color: primaryColor),
-              );
-            }
-
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            }
-
-            final docs = snapshot.data?.docs ?? [];
-            if (docs.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.inventory_2_outlined,
-                        size: 80,
-                        color: primaryColor.withValues(alpha: 0.3),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No items found',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'You have not listed any items yet.',
-                        style: TextStyle(color: Colors.grey[700]),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+        final items = snapshot.data ?? [];
+        if (items.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 80,
+                    color: primaryColor.withValues(alpha: 0.3),
                   ),
-                ),
-              );
-            }
+                  SizedBox(height: 16),
+                  Text(
+                    'No items found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'You have not listed any items yet.',
+                    style: TextStyle(color: Colors.grey[700]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
-            final List<DocumentSnapshot> activeItems = [];
-            final List<DocumentSnapshot> soldItems = [];
+        final List<Map<String, dynamic>> activeItems = [];
+        final List<Map<String, dynamic>> soldItems = [];
 
-            // Separate active and sold items
-            for (var doc in docs) {
-              final data = doc.data() as Map<String, dynamic>;
-              if (data['status'] == 'sold') {
-                soldItems.add(doc);
-              } else {
-                activeItems.add(doc);
-              }
-            }
+        // Separate active and sold items
+        for (var item in items) {
+          if (item['status'] == 'sold') {
+            soldItems.add(item);
+          } else {
+            activeItems.add(item);
+          }
+        }
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,28 +258,29 @@ class SummaryPage extends StatelessWidget {
                 ],
               ],
             );
-          },
-        );
       },
     );
   }
 
-  Widget _buildItemCard(BuildContext context, DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    final itemTitle = data['title'] ?? 'Untitled Item';
-    final itemDescription = data['description'] ?? '';
-    final itemImageUrl = data['imageUrl'] ?? '';
-    final itemCategories = List<String>.from(data['categories'] ?? []);
-    final itemPrice = data['price']?.toString() ?? '0';
-    final itemQuantity = data['quantity']?.toString() ?? '1';
-    final isItemSold = data['status'] == 'sold';
-    final soldTimestamp = data['soldTimestamp'] as Timestamp?;
+  Widget _buildItemCard(BuildContext context, Map<String, dynamic> item) {
+    final itemTitle = item['title'] ?? 'Untitled Item';
+    final itemDescription = item['description'] ?? '';
+    final itemImageUrl = item['imageUrl'] ?? '';
+    final itemCategories = List<String>.from(item['categories'] ?? []);
+    final itemPrice = item['price']?.toString() ?? '0';
+    final itemQuantity = item['quantity']?.toString() ?? '1';
+    final isItemSold = item['status'] == 'sold';
+    final itemId = item['itemId'] ?? '';
 
-    // Format the sold timestamp
+    // Format the sold timestamp if exists
     String soldDate = '';
-    if (soldTimestamp != null) {
-      final dateTime = soldTimestamp.toDate();
-      soldDate = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    if (item['soldTimestamp'] != null) {
+      try {
+        final dateTime = DateTime.parse(item['soldTimestamp']);
+        soldDate = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+      } catch (e) {
+        print('Error parsing soldTimestamp: $e');
+      }
     }
 
     return Card(
@@ -438,7 +428,7 @@ class SummaryPage extends StatelessWidget {
                     if (!isItemSold)
                       IconButton(
                         icon: Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => _deleteItem(context, doc.id),
+                        onPressed: () => _deleteItem(context, itemId),
                       ),
                   ],
                 ),

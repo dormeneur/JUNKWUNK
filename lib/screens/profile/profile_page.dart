@@ -1,8 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/colors.dart' as colors;
+import '../../services/api_service.dart';
 import 'edit_profile_page.dart';
 
 class ProfileUI extends StatefulWidget {
@@ -13,7 +13,6 @@ class ProfileUI extends StatefulWidget {
 }
 
 class ProfileUIState extends State<ProfileUI> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _userId;
   String? _userEmail;
 
@@ -33,6 +32,11 @@ class ProfileUIState extends State<ProfileUI> {
       _userId = prefs.getString('cognito_user_id');
       _userEmail = prefs.getString('cognito_user_email');
     });
+  }
+
+  Future<Map<String, dynamic>?> _loadUserProfile() async {
+    if (_userId == null) return null;
+    return await ApiService.getUser(_userId!);
   }
 
   void _showLogoutConfirmation(BuildContext context) {
@@ -177,9 +181,21 @@ class ProfileUIState extends State<ProfileUI> {
       );
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: _firestore.collection('users').doc(_userId).snapshots(),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _loadUserProfile(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Profile'),
+              backgroundColor: primaryColor,
+            ),
+            body: Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            ),
+          );
+        }
+
         if (snapshot.hasError) {
           return Scaffold(
             appBar: AppBar(
@@ -201,9 +217,8 @@ class ProfileUIState extends State<ProfileUI> {
         bool isVerifiedByNGO = true;
         int creditPoints = 50;
 
-        if (snapshot.hasData && snapshot.data!.exists) {
-          Map<String, dynamic> data =
-              snapshot.data!.data() as Map<String, dynamic>;
+        if (snapshot.hasData && snapshot.data != null) {
+          Map<String, dynamic> data = snapshot.data!;
           userType = data['role'] ?? "";
           name = data['displayName'] ?? "";
           phone = data['phone'] ?? "";

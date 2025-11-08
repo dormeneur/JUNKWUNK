@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
 import '../../utils/design_constants.dart';
+import '../../services/api_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String name;
@@ -53,25 +53,24 @@ class EditProfilePageState extends State<EditProfilePage> {
       final userId = prefs.getString('cognito_user_id');
 
       if (userId != null && userId.isNotEmpty) {
-        // Update Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .update({
+        // Update via API
+        final result = await ApiService.updateUser(userId, {
           'displayName': _nameController.text,
           'phone': _phoneController.text,
           'location': _locationController.text,
           'profileCompleted': true,
-          'updatedAt': FieldValue.serverTimestamp(),
+          'updatedAt': DateTime.now().toIso8601String(),
         });
 
-        if (mounted) {
+        if (result != null && mounted) {
           Navigator.pop(context, {
             "name": _nameController.text,
             "email": widget.email, // Email remains unchanged
             "phone": _phoneController.text,
             "location": _locationController.text,
           });
+        } else if (mounted) {
+          CustomToast.showError(context, 'Failed to save changes');
         }
       }
     } catch (e) {
