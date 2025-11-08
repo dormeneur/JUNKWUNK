@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import '../../main.dart' as main_app;
+import '../../main_cognito.dart' as main_app;
 import 'mediator/page1.dart';
 import 'mediator/page2.dart';
 import 'mediator/page3.dart';
@@ -168,7 +168,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          main_app.handleLogout(context);
+                          main_app.handleLogoutCognito(context);
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,

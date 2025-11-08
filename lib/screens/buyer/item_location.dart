@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/api_keys.dart';
 import 'widgets/map_controls.dart';
@@ -39,11 +39,14 @@ class _ItemLocationState extends State<ItemLocation> {
 
   Future<void> fetchUserCoordinates() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+      // Get userId from SharedPreferences (Cognito)
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('cognito_user_id');
+      
+      if (userId != null && userId.isNotEmpty) {
         final doc = await FirebaseFirestore.instance
             .collection('users')
-            .doc(user.uid)
+            .doc(userId)
             .get();
 
         if (doc.exists && doc.data()?['coordinates'] != null) {

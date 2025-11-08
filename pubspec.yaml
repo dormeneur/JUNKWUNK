@@ -12,9 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-    # Firebase packages (keeping for now - parallel running)
-  firebase_auth: ^5.3.4
-  firebase_auth_web: ^5.13.3
+  # Firebase packages (still using Firestore until DynamoDB migration)
   firebase_core: ^3.9.0
   firebase_storage: ^12.3.7
   cloud_firestore: ^5.6.0
