@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import '../../main_cognito.dart' as main_app;
+import '../../main.dart' as main_app;
 import 'mediator/page1.dart';
 import 'mediator/page2.dart';
 import 'mediator/page3.dart';

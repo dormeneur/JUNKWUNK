@@ -188,10 +188,11 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
           return;
         }
 
-          debugPrint('!!!DEBUG: Current user ID: $userId');
+        debugPrint('!!!DEBUG: Current user ID: $userId');
 
-          if (userId.isNotEmpty) {
-            debugPrint('!!!DEBUG: Attempting to update user via API');          // Add a short delay for better UX
+        if (userId.isNotEmpty) {
+          debugPrint(
+              '!!!DEBUG: Attempting to update user via API'); // Add a short delay for better UX
           await Future.delayed(const Duration(milliseconds: 800));
 
           // Try to update via API but continue if it fails
@@ -220,8 +221,8 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
             // Add coordinates if available
             if (latitude != null && longitude != null) {
               userData['coordinates'] = {
-                'lat': latitude,
-                'lng': longitude,
+                'lat': latitude.toString(),
+                'lng': longitude.toString(),
               };
             }
 
@@ -264,8 +265,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
             }
             debugPrint('!!!DEBUG: Navigation command executed');
           } else {
-            debugPrint(
-                '!!!DEBUG: Context is NOT mounted after API update');
+            debugPrint('!!!DEBUG: Context is NOT mounted after API update');
           }
         } else {
           debugPrint('!!!DEBUG: User is null, cannot update profile');

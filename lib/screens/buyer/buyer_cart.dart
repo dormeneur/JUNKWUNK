@@ -89,14 +89,16 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 description: item['description'] ?? '',
                 imageUrl: item['imageUrl'] ?? '',
                 categories: List<String>.from(item['categories'] ?? []),
-                price: (item['price'] ?? 0.0).toDouble(),
-                quantity: item['quantity'] ?? 1,
+                price: ((item['price'] ?? 0).toDouble()),
+                quantity: ((item['quantity'] ?? 1) is int 
+                    ? item['quantity'] 
+                    : (item['quantity'] as num).toInt()),
                 sellerName: item['sellerName'] ?? 'Unknown Seller',
                 city: item['city'] ?? 'Unknown City',
                 coordinates: item['coordinates'] != null
                     ? MapCoordinates(
-                        latitude: item['coordinates']['lat'] ?? 0.0,
-                        longitude: item['coordinates']['lng'] ?? 0.0,
+                        latitude: ((item['coordinates']['lat'] ?? 0) as num).toDouble(),
+                        longitude: ((item['coordinates']['lng'] ?? 0) as num).toDouble(),
                       )
                     : MapCoordinates(latitude: 0.0, longitude: 0.0),
               );

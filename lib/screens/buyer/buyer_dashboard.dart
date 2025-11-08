@@ -61,7 +61,8 @@ class BuyerDashboardState extends State<BuyerDashboard>
       // Calculate total items considering quantities
       int totalItems = 0;
       for (var item in cartItems) {
-        totalItems += (item['quantity'] ?? 1) as int;
+        final quantity = item['quantity'] ?? 1;
+        totalItems += (quantity is int ? quantity : (quantity as num).toInt());
       }
 
       // Update ValueNotifier instead of calling setState
@@ -329,8 +330,10 @@ class BuyerDashboardState extends State<BuyerDashboard>
                 description: item['description'] ?? 'No description',
                 categories: List<String>.from(item['categories'] ?? []),
                 itemTypes: List<String>.from(item['itemTypes'] ?? []),
-                price: (item['price'] ?? 0.0).toString(),
-                quantity: item['quantity'] ?? 1,
+                price: ((item['price'] ?? 0).toDouble()).toString(),
+                quantity: ((item['quantity'] ?? 1) is int
+                    ? item['quantity']
+                    : (item['quantity'] as num).toInt()),
                 city: item['city'] ?? 'Unknown Location',
                 onCartUpdated: loadCartItemCount,
                 refreshTrigger: refreshTrigger,

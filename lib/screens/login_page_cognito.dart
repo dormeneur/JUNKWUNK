@@ -192,9 +192,11 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
 
       // Store Cognito tokens for API calls
       await prefs.setString('cognito_id_token', signInResult['userId']);
-      await prefs.setString('cognito_access_token', signInResult['accessToken']);
+      await prefs.setString(
+          'cognito_access_token', signInResult['accessToken']);
       if (signInResult['refreshToken'] != null) {
-        await prefs.setString('cognito_refresh_token', signInResult['refreshToken']);
+        await prefs.setString(
+            'cognito_refresh_token', signInResult['refreshToken']);
       }
 
       // Get user ID

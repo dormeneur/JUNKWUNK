@@ -17,7 +17,7 @@ class ApiService {
   static Future<String?> _getIdToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // First try to get the stored ID token
       final storedToken = prefs.getString('cognito_id_token');
       if (storedToken != null && storedToken.isNotEmpty) {
@@ -46,7 +46,7 @@ class ApiService {
       if (token != null) {
         await prefs.setString('cognito_id_token', token);
       }
-      
+
       return token;
     } catch (e) {
       print('Error getting ID token: $e');
@@ -69,13 +69,17 @@ class ApiService {
   static Future<Map<String, dynamic>?> getUser(String userId) async {
     try {
       final headers = await _getHeaders();
+      print('Getting user with ID: $userId');
       final response = await http.get(
         Uri.parse('$baseUrl/users/$userId'),
         headers: headers,
       );
 
+      print('Get user response: ${response.statusCode}');
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+        print('User data received: $data');
+        return data;
       } else {
         print('Get user error: ${response.statusCode} ${response.body}');
         return null;
@@ -92,6 +96,7 @@ class ApiService {
     Map<String, dynamic> userData,
   ) async {
     try {
+      print('Updating user $userId with data: $userData');
       final headers = await _getHeaders();
       final response = await http.put(
         Uri.parse('$baseUrl/users/$userId'),
@@ -99,8 +104,11 @@ class ApiService {
         body: json.encode(userData),
       );
 
+      print('Update user response: ${response.statusCode}');
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+        print('Updated user data: $data');
+        return data;
       } else {
         print('Update user error: ${response.statusCode} ${response.body}');
         return null;
