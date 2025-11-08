@@ -84,8 +84,7 @@ class AuthHelpersCognito {
         }
       } catch (apiError) {
         // Handle API errors by proceeding to profile setup
-        debugPrint(
-            'API error in handlePostAuthNavigation: $apiError');
+        debugPrint('API error in handlePostAuthNavigation: $apiError');
 
         if (context.mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil(

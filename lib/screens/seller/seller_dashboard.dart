@@ -129,7 +129,7 @@ class SellerDashboardState extends State<SellerDashboard> {
     );
   }
 
-  Future<void> _saveToFirebase() async {
+  Future<void> _saveItem() async {
     if (_imageUrl == null) {
       CustomToast.showError(context, 'Please upload an image first');
       return;
@@ -842,7 +842,7 @@ class SellerDashboardState extends State<SellerDashboard> {
       width: double.infinity,
       height: AppButtons.heightLG,
       child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _saveToFirebase,
+        onPressed: _isSubmitting ? null : _saveItem,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.success,
           foregroundColor: AppColors.white,

@@ -188,12 +188,10 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
           return;
         }
 
-        debugPrint('!!!DEBUG: Current user ID: $userId');
+          debugPrint('!!!DEBUG: Current user ID: $userId');
 
-        if (userId.isNotEmpty) {
-          debugPrint('!!!DEBUG: Attempting to update Firestore document');
-
-          // Add a short delay for better UX
+          if (userId.isNotEmpty) {
+            debugPrint('!!!DEBUG: Attempting to update user via API');          // Add a short delay for better UX
           await Future.delayed(const Duration(milliseconds: 800));
 
           // Try to update via API but continue if it fails
@@ -243,9 +241,9 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
           });
 
           debugPrint(
-              '!!!DEBUG: About to navigate to dashboard regardless of Firestore result');
+              '!!!DEBUG: About to navigate to dashboard regardless of API result');
 
-          // CRITICAL FIX: DIRECT NAVIGATION - Always navigate regardless of Firestore result
+          // CRITICAL FIX: DIRECT NAVIGATION - Always navigate regardless of API result
           if (mounted) {
             debugPrint(
                 '!!!DEBUG: Context is mounted, proceeding with navigation');
@@ -267,7 +265,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
             debugPrint('!!!DEBUG: Navigation command executed');
           } else {
             debugPrint(
-                '!!!DEBUG: Context is NOT mounted after Firestore update');
+                '!!!DEBUG: Context is NOT mounted after API update');
           }
         } else {
           debugPrint('!!!DEBUG: User is null, cannot update profile');

@@ -8,14 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/api_keys.dart';
 import '../../services/api_service.dart';
+import '../../utils/map_coordinates.dart';
 import 'widgets/map_controls.dart';
-
-class MapCoordinates {
-  final double latitude;
-  final double longitude;
-
-  MapCoordinates({required this.latitude, required this.longitude});
-}
 
 class ItemLocation extends StatefulWidget {
   final MapCoordinates coordinates;

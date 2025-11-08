@@ -8,6 +8,7 @@ import '/utils/colors.dart' as colors;
 import '/utils/custom_toast.dart';
 import '/widgets/s3_image.dart';
 import '/services/api_service.dart';
+import '/utils/map_coordinates.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -589,13 +590,6 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     }
     super.dispose();
   }
-}
-
-class MapCoordinates {
-  final double latitude;
-  final double longitude;
-
-  MapCoordinates({required this.latitude, required this.longitude});
 }
 
 class CartItem {
