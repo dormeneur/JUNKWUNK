@@ -45,7 +45,7 @@ class MyAppCognito extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'JunkWunk (AWS Cognito)',
+      title: 'JunkWunk',
       theme: ThemeData(
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.secondary,

@@ -191,33 +191,65 @@ class BuyerDashboardState extends State<BuyerDashboard>
       ),
       body: Column(
         children: [
+          // Modern tab bar with refined styling
           Container(
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              boxShadow: AppShadows.shadow2,
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: AppColors.white,
-              indicatorWeight: 3,
-              labelColor: AppColors.white,
-              unselectedLabelColor: AppColors.white.withValues(alpha: 0.7),
-              tabs: const [
-                Tab(
-                  icon: Icon(Icons.category),
-                  text: 'All Items',
+            color: Colors.white,
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: AppColors.white,
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: AppColors.white,
+                    unselectedLabelColor:
+                        AppColors.white.withValues(alpha: 0.65),
+                    labelStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    tabs: const [
+                      Tab(
+                        icon: Icon(Icons.apps_rounded, size: 22),
+                        text: 'All Items',
+                      ),
+                      Tab(
+                        icon: Icon(Icons.favorite_rounded, size: 22),
+                        text: 'Donate',
+                      ),
+                      Tab(
+                        icon: Icon(Icons.eco_rounded, size: 22),
+                        text: 'Recyclable',
+                      ),
+                      Tab(
+                        icon: Icon(Icons.delete_sweep_rounded, size: 22),
+                        text: 'Non-Recyclable',
+                      ),
+                    ],
+                  ),
                 ),
-                Tab(
-                  icon: Icon(Icons.volunteer_activism),
-                  text: 'Donate',
-                ),
-                Tab(
-                  icon: Icon(Icons.recycling),
-                  text: 'Recyclable',
-                ),
-                Tab(
-                  icon: Icon(Icons.delete_outline),
-                  text: 'Non-Recyclable',
+                // Subtle divider
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    color: AppColors.grey.withValues(alpha: 0.15),
+                  ),
                 ),
               ],
             ),
@@ -285,26 +317,36 @@ class BuyerDashboardState extends State<BuyerDashboard>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 80,
-                          color: AppColors.secondary,
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64,
+                            color: AppColors.primary.withValues(alpha: 0.6),
+                          ),
                         ),
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.lg),
                         const Text(
                           'No items available',
                           style: TextStyle(
-                            fontSize: AppTypography.fontSizeXL,
+                            fontSize: 20,
                             color: AppColors.primary,
-                            fontWeight: AppTypography.medium,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        const Text(
+                        Text(
                           'Check back later for new products',
                           style: TextStyle(
-                            fontSize: AppTypography.fontSizeMD,
-                            color: AppColors.textSecondary,
+                            fontSize: 15,
+                            color:
+                                AppColors.textSecondary.withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
@@ -316,27 +358,33 @@ class BuyerDashboardState extends State<BuyerDashboard>
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               final item = snapshot.data![index];
 
-              return ItemCard(
-                key: ValueKey('${item['itemId']}-${refreshTrigger.value}'),
-                itemId: item['itemId'],
-                sellerId: item['sellerId'],
-                imageUrl: item['imageUrl'] ?? '',
-                title: item['title'] ?? 'Untitled Item',
-                description: item['description'] ?? 'No description',
-                categories: List<String>.from(item['categories'] ?? []),
-                itemTypes: List<String>.from(item['itemTypes'] ?? []),
-                price: ((item['price'] ?? 0).toDouble()).toString(),
-                quantity: ((item['quantity'] ?? 1) is int
-                    ? item['quantity']
-                    : (item['quantity'] as num).toInt()),
-                city: item['city'] ?? 'Unknown Location',
-                onCartUpdated: loadCartItemCount,
-                refreshTrigger: refreshTrigger,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: ItemCard(
+                  key: ValueKey('${item['itemId']}-${refreshTrigger.value}'),
+                  itemId: item['itemId'],
+                  sellerId: item['sellerId'],
+                  imageUrl: item['imageUrl'] ?? '',
+                  title: item['title'] ?? 'Untitled Item',
+                  description: item['description'] ?? 'No description',
+                  categories: List<String>.from(item['categories'] ?? []),
+                  itemTypes: List<String>.from(item['itemTypes'] ?? []),
+                  price: ((item['price'] ?? 0).toDouble()).toString(),
+                  quantity: ((item['quantity'] ?? 1) is int
+                      ? item['quantity']
+                      : (item['quantity'] as num).toInt()),
+                  city: item['city'] ?? 'Unknown Location',
+                  onCartUpdated: loadCartItemCount,
+                  refreshTrigger: refreshTrigger,
+                ),
               );
             },
           );

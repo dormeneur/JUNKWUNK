@@ -261,7 +261,8 @@ class ProfileUIState extends State<ProfileUI> {
                       ),
                     ),
                   ).then((_) {
-                    // StreamBuilder will automatically update when data changes
+                    // Refresh the profile data after returning from edit page
+                    setState(() {});
                   });
                 },
               ),
@@ -274,7 +275,8 @@ class ProfileUIState extends State<ProfileUI> {
           ),
           body: RefreshIndicator(
             onRefresh: () async {
-              // StreamBuilder automatically refreshes, but we can trigger a manual refresh if needed
+              // Trigger a rebuild to fetch fresh data
+              setState(() {});
               await Future.delayed(const Duration(milliseconds: 500));
             },
             child: _buildProfileContent(

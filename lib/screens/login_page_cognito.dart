@@ -7,7 +7,7 @@ import '../services/aws_cognito_auth_service.dart';
 import '../services/api_service.dart';
 import '../utils/auth_helpers_cognito.dart';
 import '../utils/custom_toast.dart';
-import 'email_verification_page.dart';
+import '../widgets/email_verification_modal.dart';
 
 /// Login Page using AWS Cognito Authentication
 /// This replaces Firebase Auth with AWS Cognito User Pool
@@ -60,14 +60,17 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
       if (!result['success']) {
         // Check if user needs to verify email
         if (result['message'].toString().contains('verify your email')) {
-          // Navigate to email verification page
+          // Show email verification modal
           if (mounted) {
-            final verified = await Navigator.of(context).push<bool>(
-              MaterialPageRoute(
-                builder: (context) => EmailVerificationPage(
-                  email: data.name,
-                  password: data.password,
-                ),
+            final verified = await showModalBottomSheet<bool>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              isDismissible: false,
+              enableDrag: true,
+              builder: (context) => EmailVerificationModal(
+                email: data.name,
+                password: data.password,
               ),
             );
 
@@ -151,14 +154,17 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
       if (result['userConfirmed'] == false) {
         debugPrint('AWS Cognito: User needs email verification');
 
-        // Navigate to email verification page
+        // Show email verification modal
         if (mounted) {
-          final verified = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (context) => EmailVerificationPage(
-                email: data.name!,
-                password: data.password!,
-              ),
+          final verified = await showModalBottomSheet<bool>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            isDismissible: false,
+            enableDrag: true,
+            builder: (context) => EmailVerificationModal(
+              email: data.name!,
+              password: data.password!,
             ),
           );
 
@@ -255,7 +261,7 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
         onLogin: _authUser,
         onSignup: _signUpUser,
         onRecoverPassword: _recoverPassword,
-        title: 'JunkWunk (AWS)',
+        title: 'JunkWunk',
         theme: LoginTheme(
           primaryColor: const Color(0xFF132a13), // Dark green
           accentColor: const Color(0xFFecf39e), // Mindaro
