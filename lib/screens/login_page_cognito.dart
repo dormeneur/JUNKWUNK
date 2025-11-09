@@ -255,7 +255,7 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
         onLogin: _authUser,
         onSignup: _signUpUser,
         onRecoverPassword: _recoverPassword,
-        title: 'JunkWunk (AWS)',
+        title: 'JunkWunk',
         theme: LoginTheme(
           primaryColor: const Color(0xFF132a13), // Dark green
           accentColor: const Color(0xFFecf39e), // Mindaro
