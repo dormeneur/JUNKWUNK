@@ -1240,7 +1240,7 @@ with open('firestore_export/users.json', 'r') as f:
     for user in users:
         transformed = transform_user(user)
         users_table.put_item(Item=transformed)
-        print(f"Migrated user: {user['uid']}")
+        debugPrint(f"Migrated user: {user['uid']}")
 
 # Similar process for items, cart, orders
 ```

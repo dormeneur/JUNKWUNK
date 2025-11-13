@@ -219,12 +219,12 @@ class ProfileUIState extends State<ProfileUI> {
 
         if (snapshot.hasData && snapshot.data != null) {
           Map<String, dynamic> data = snapshot.data!;
-          print('Profile data received: $data');
+          debugPrint('Profile data received: $data');
           userType = data['role'] ?? "";
           name = data['displayName'] ?? "";
           phone = data['phone'] ?? "";
           location = data['location'] ?? "";
-          print('Extracted - phone: $phone, location: $location');
+          debugPrint('Extracted - phone: $phone, location: $location');
           if (data['role']?.toLowerCase() == 'buyer') {
             isVerifiedByNGO = true;
             final points = data['creditPoints'] ?? 50;

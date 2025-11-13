@@ -211,12 +211,11 @@ class S3Service {
   }
 
   String _formatDateTime(DateTime date) {
-    return date
+    return '${date
             .toIso8601String()
             .replaceAll('-', '')
             .replaceAll(':', '')
-            .split('.')[0] +
-        'Z';
+            .split('.')[0]}Z';
   }
 
   String _generateSignature({

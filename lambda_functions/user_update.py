@@ -14,7 +14,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def lambda_handler(event, context):
     try:
-        print(f"Event received: {json.dumps(event)}")
+        debugPrint(f"Event received: {json.dumps(event)}")
         
         # Get userId from Cognito authorizer
         user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
@@ -32,11 +32,11 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'userId is required'})
             }
         
-        print(f"Updating user: {user_id}")
+        debugPrint(f"Updating user: {user_id}")
         
         # Parse request body
         body = json.loads(event.get('body', '{}'))
-        print(f"Request body: {json.dumps(body)}")
+        debugPrint(f"Request body: {json.dumps(body)}")
         
         # Build update expression
         update_expr = "SET updatedAt = :updatedAt"
@@ -58,8 +58,8 @@ def lambda_handler(event, context):
                     expr_names[f'#{field}'] = field
                     expr_values[f':{field}'] = body[field]
         
-        print(f"Update expression: {update_expr}")
-        print(f"Expression values: {json.dumps(expr_values, default=str)}")
+        debugPrint(f"Update expression: {update_expr}")
+        debugPrint(f"Expression values: {json.dumps(expr_values, default=str)}")
         
         response = table.update_item(
             Key={'userId': user_id},
@@ -69,7 +69,7 @@ def lambda_handler(event, context):
             ReturnValues='ALL_NEW'
         )
         
-        print(f"Update successful. New attributes: {json.dumps(response['Attributes'], cls=DecimalEncoder)}")
+        debugPrint(f"Update successful. New attributes: {json.dumps(response['Attributes'], cls=DecimalEncoder)}")
         
         return {
             'statusCode': 200,
@@ -81,7 +81,7 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
-        print(f"Error: {str(e)}")
+        debugPrint(f"Error: {str(e)}")
         import traceback
         traceback.print_exc()
         return {

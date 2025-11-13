@@ -116,7 +116,7 @@ def lambda_handler(event, context):
                     'coordinates': item.get('coordinates', {})
                 })
         except Exception as e:
-            print(f"Error updating cart: {str(e)}")
+            debugPrint(f"Error updating cart: {str(e)}")
             raise
         
         return {
@@ -129,7 +129,7 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
-        print(f"Error: {str(e)}")
+        debugPrint(f"Error: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {

@@ -22,14 +22,18 @@ class AuthHelpersCognito {
       final userEmail = email ?? prefs.getString('cognito_user_email');
 
       if (userEmail == null) {
-        CustomToast.showError(
-            context, 'Authentication issue. Please sign in again.');
-        return;
+        if (context.mounted) {
+          CustomToast.showError(
+              context, 'Authentication issue. Please sign in again.');
+          return;
+        }
       }
 
       // Use provided userId or show error
       if (userId == null) {
-        CustomToast.showError(context, 'Failed to get user information.');
+        if (context.mounted) {
+          CustomToast.showError(context, 'Failed to get user information.');
+        }
         return;
       }
 
@@ -102,12 +106,13 @@ class AuthHelpersCognito {
         // Fallback to profile setup if there's an error
         final prefs = await SharedPreferences.getInstance();
         final fallbackEmail = prefs.getString('cognito_user_email') ?? '';
-
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/profile/setup',
-          (Route<dynamic> route) => false,
-          arguments: {'email': fallbackEmail, 'role': null},
-        );
+        if (context.mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/profile/setup',
+            (Route<dynamic> route) => false,
+            arguments: {'email': fallbackEmail, 'role': null},
+          );
+        }
       }
     }
   }

@@ -2,6 +2,7 @@
 ///
 /// This file contains the configuration for AWS Cognito User Pool
 /// Replace these values if you recreate the user pool
+library;
 
 class AWSConfig {
   // Cognito User Pool Configuration

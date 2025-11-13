@@ -59,7 +59,7 @@ def lambda_handler(event, context):
             'body': json.dumps(item, cls=DecimalEncoder)
         }
     except Exception as e:
-        print(f'Error: {str(e)}')
+        debugPrint(f'Error: {str(e)}')
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*'},

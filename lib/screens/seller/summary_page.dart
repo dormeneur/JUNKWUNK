@@ -277,7 +277,7 @@ class _SummaryPageState extends State<SummaryPage> {
         final dateTime = DateTime.parse(item['soldTimestamp']);
         soldDate = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
       } catch (e) {
-        print('Error parsing soldTimestamp: $e');
+        debugPrint('Error parsing soldTimestamp: $e');
       }
     }
 

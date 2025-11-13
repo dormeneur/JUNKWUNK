@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
@@ -21,14 +22,14 @@ class ApiService {
       // First try to get the stored ID token
       final storedToken = prefs.getString('cognito_id_token');
       if (storedToken != null && storedToken.isNotEmpty) {
-        print('Using stored ID token');
+        debugPrint('Using stored ID token');
         return storedToken;
       }
 
       // Fallback: Try to get session from Cognito (for older sessions)
       final email = prefs.getString('cognito_user_email');
       if (email == null) {
-        print('User not logged in - no email');
+        debugPrint('User not logged in - no email');
         return null;
       }
 
@@ -37,7 +38,7 @@ class ApiService {
 
       final session = await cognitoUser.getSession();
       if (session == null || !session.isValid()) {
-        print('Session invalid or null');
+        debugPrint('Session invalid or null');
         return null;
       }
 
@@ -49,7 +50,7 @@ class ApiService {
 
       return token;
     } catch (e) {
-      print('Error getting ID token: $e');
+      debugPrint('Error getting ID token: $e');
       return null;
     }
   }
@@ -69,23 +70,23 @@ class ApiService {
   static Future<Map<String, dynamic>?> getUser(String userId) async {
     try {
       final headers = await _getHeaders();
-      print('Getting user with ID: $userId');
+      debugPrint('Getting user with ID: $userId');
       final response = await http.get(
         Uri.parse('$baseUrl/users/$userId'),
         headers: headers,
       );
 
-      print('Get user response: ${response.statusCode}');
+      debugPrint('Get user response: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('User data received: $data');
+        debugPrint('User data received: $data');
         return data;
       } else {
-        print('Get user error: ${response.statusCode} ${response.body}');
+        debugPrint('Get user error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Get user exception: $e');
+      debugPrint('Get user exception: $e');
       return null;
     }
   }
@@ -96,7 +97,7 @@ class ApiService {
     Map<String, dynamic> userData,
   ) async {
     try {
-      print('Updating user $userId with data: $userData');
+      debugPrint('Updating user $userId with data: $userData');
       final headers = await _getHeaders();
       final response = await http.put(
         Uri.parse('$baseUrl/users/$userId'),
@@ -104,17 +105,18 @@ class ApiService {
         body: json.encode(userData),
       );
 
-      print('Update user response: ${response.statusCode}');
+      debugPrint('Update user response: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Updated user data: $data');
+        debugPrint('Updated user data: $data');
         return data;
       } else {
-        print('Update user error: ${response.statusCode} ${response.body}');
+        debugPrint(
+            'Update user error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Update user exception: $e');
+      debugPrint('Update user exception: $e');
       return null;
     }
   }
@@ -143,11 +145,11 @@ class ApiService {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data['items'] ?? []);
       } else {
-        print('Get items error: ${response.statusCode} ${response.body}');
+        debugPrint('Get items error: ${response.statusCode} ${response.body}');
         return [];
       }
     } catch (e) {
-      print('Get items exception: $e');
+      debugPrint('Get items exception: $e');
       return [];
     }
   }
@@ -164,11 +166,11 @@ class ApiService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print('Get item error: ${response.statusCode} ${response.body}');
+        debugPrint('Get item error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Get item exception: $e');
+      debugPrint('Get item exception: $e');
       return null;
     }
   }
@@ -188,11 +190,12 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return json.decode(response.body);
       } else {
-        print('Create item error: ${response.statusCode} ${response.body}');
+        debugPrint(
+            'Create item error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Create item exception: $e');
+      debugPrint('Create item exception: $e');
       return null;
     }
   }
@@ -213,11 +216,12 @@ class ApiService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print('Update item error: ${response.statusCode} ${response.body}');
+        debugPrint(
+            'Update item error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Update item exception: $e');
+      debugPrint('Update item exception: $e');
       return null;
     }
   }
@@ -234,11 +238,12 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 204) {
         return true;
       } else {
-        print('Delete item error: ${response.statusCode} ${response.body}');
+        debugPrint(
+            'Delete item error: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {
-      print('Delete item exception: $e');
+      debugPrint('Delete item exception: $e');
       return false;
     }
   }
@@ -258,11 +263,11 @@ class ApiService {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data['items'] ?? []);
       } else {
-        print('Get cart error: ${response.statusCode} ${response.body}');
+        debugPrint('Get cart error: ${response.statusCode} ${response.body}');
         return [];
       }
     } catch (e) {
-      print('Get cart exception: $e');
+      debugPrint('Get cart exception: $e');
       return [];
     }
   }
@@ -288,11 +293,12 @@ class ApiService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print('Add to cart error: ${response.statusCode} ${response.body}');
+        debugPrint(
+            'Add to cart error: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {
-      print('Add to cart exception: $e');
+      debugPrint('Add to cart exception: $e');
       return false;
     }
   }
@@ -309,12 +315,12 @@ class ApiService {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print(
+        debugPrint(
             'Remove from cart error: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {
-      print('Remove from cart exception: $e');
+      debugPrint('Remove from cart exception: $e');
       return false;
     }
   }
@@ -332,11 +338,11 @@ class ApiService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print('Checkout error: ${response.statusCode} ${response.body}');
+        debugPrint('Checkout error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Checkout exception: $e');
+      debugPrint('Checkout exception: $e');
       return null;
     }
   }
@@ -356,11 +362,12 @@ class ApiService {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data['purchases'] ?? []);
       } else {
-        print('Get purchases error: ${response.statusCode} ${response.body}');
+        debugPrint(
+            'Get purchases error: ${response.statusCode} ${response.body}');
         return [];
       }
     } catch (e) {
-      print('Get purchases exception: $e');
+      debugPrint('Get purchases exception: $e');
       return [];
     }
   }
