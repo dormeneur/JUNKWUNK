@@ -4,28 +4,39 @@ import 'package:flutter/material.dart';
 /// This file contains all UI constants to ensure visual consistency across the app
 
 class AppColors {
-  // Green palette
-  static const Color primary = Color(0xFF132a13); // Dark green
-  static const Color primaryLight = Color(0xFF31572c); // Hunter green
-  static const Color primaryDark = Color(0xFF132a13); // Dark green
+  // Light Green Palette - Primary Colors
+  static const Color primaryLightest = Color(0xFFE8F5E9); // Lightest green
+  static const Color primaryLight = Color(0xFFC8E6C9); // Light green
+  static const Color primaryMediumLight = Color(0xFFA5D6A7); // Medium-light green
+  static const Color primary = Color(0xFF81C784); // Medium green
+  static const Color primaryMedium = Color(0xFF66BB6A); // Medium-strong green
+  static const Color primaryDark = Color(0xFF66BB6A); // Medium-strong green (alias)
   
-  // Secondary Colors
-  static const Color secondary = Color(0xFFecf39e); // Mindaro (light accent)
-  static const Color secondaryLight = Color(0xFFecf39e); // Mindaro
+  // Secondary Colors (light green shades)
+  static const Color secondary = Color(0xFFC8E6C9); // Light green
+  static const Color secondaryLight = Color(0xFFE8F5E9); // Lightest green
   
   // Accent Colors
-  static const Color accent = Color(0xFF90a955); // Moss green
+  static const Color accent = Color(0xFF81C784); // Medium green
   
   // Status Colors
-  static const Color success = Color(0xFF4f772d); // Fern green
-  static const Color error = Color(0xFFE53935);
-  static const Color warning = Color(0xFFFFA726);
-  static const Color info = Color(0xFF31572c); // Hunter green
+  static const Color success = Color(0xFF66BB6A); // Medium green
+  static const Color error = Color(0xFFEF5350); // Soft red
+  static const Color warning = Color(0xFFFFA726); // Soft amber
+  static const Color info = Color(0xFF4DB6AC); // Blue-green
   
   // Category Colors
-  static const Color donate = Color(0xFF4f772d); // Fern green
-  static const Color recyclable = Color(0xFF90a955); // Moss green
-  static const Color nonRecyclable = Color(0xFF31572c); // Hunter green
+  static const Color donate = Color(0xFF81C784); // Medium green
+  static const Color recyclable = Color(0xFFA5D6A7); // Medium-light green
+  static const Color nonRecyclable = Color(0xFF66BB6A); // Medium-strong green
+  
+  // Background Colors
+  static const Color backgroundLight = Color(0xFFF1F8F4); // Very light green tint
+  static const Color scaffoldBackground = backgroundLight;
+  
+  // Border Colors
+  static const Color borderLight = Color(0xFFC8E6C9); // Light green border
+  static const Color borderMedium = Color(0xFF66BB6A); // Medium green border
   
   // Neutral Colors
   static const Color white = Color(0xFFFFFFFF); // Pure white
@@ -35,10 +46,10 @@ class AppColors {
   static const Color greyDark = Color(0xFF616161); // Dark grey
   
   // Text Colors
-  static const Color textPrimary = Color(0xFF212121); // Near black
-  static const Color textSecondary = Color(0xFF757575); // Medium grey
+  static const Color textPrimary = Color(0xFF2E3B2E); // Dark gray-green
+  static const Color textSecondary = Color(0xFF4A7C59); // Medium green
   static const Color textHint = Color(0xFF9E9E9E); // Light grey
-  static const Color textOnPrimary = Color(0xFFFFFFFF); // White on dark green
+  static const Color textOnPrimary = Color(0xFFFFFFFF); // White on colored backgrounds
 }
 
 class AppSpacing {
@@ -164,7 +175,15 @@ class AppBorders {
 }
 
 class AppShadows {
-  // Elevation shadows
+  // Subtle elevation shadows for light theme
+  static List<BoxShadow> subtle = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.08),
+      blurRadius: 4,
+      offset: const Offset(0, 2),
+    ),
+  ];
+  
   static List<BoxShadow> shadow1 = [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.05),
@@ -176,41 +195,44 @@ class AppShadows {
   static List<BoxShadow> shadow2 = [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.08),
-      blurRadius: 8,
+      blurRadius: 6,
       offset: const Offset(0, 2),
     ),
   ];
   
   static List<BoxShadow> shadow3 = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.1),
-      blurRadius: 12,
-      offset: const Offset(0, 4),
+      color: Colors.black.withValues(alpha: 0.10),
+      blurRadius: 8,
+      offset: const Offset(0, 3),
     ),
   ];
   
   static List<BoxShadow> shadow4 = [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.12),
-      blurRadius: 16,
-      offset: const Offset(0, 6),
-    ),
-  ];
-  
-  // Special shadows
-  static List<BoxShadow> shadowPrimary = [
-    BoxShadow(
-      color: AppColors.primary.withValues(alpha: 0.3),
       blurRadius: 12,
       offset: const Offset(0, 4),
     ),
   ];
   
-  static List<BoxShadow> shadowCard = [
+  // Card shadow - subtle for light theme
+  static List<BoxShadow> card = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.08),
+      color: Colors.black.withValues(alpha: 0.10),
       blurRadius: 8,
-      offset: const Offset(0, 2),
+      offset: const Offset(0, 3),
+    ),
+  ];
+  
+  static List<BoxShadow> shadowCard = card; // Alias for backward compatibility
+  
+  // Special shadows
+  static List<BoxShadow> shadowPrimary = [
+    BoxShadow(
+      color: AppColors.primary.withValues(alpha: 0.2),
+      blurRadius: 8,
+      offset: const Offset(0, 3),
     ),
   ];
 }
@@ -221,11 +243,16 @@ class AppButtons {
   static const double heightMD = 44.0;
   static const double heightLG = 52.0;
   
-  // Primary button style
-  static ButtonStyle primaryButton = ElevatedButton.styleFrom(
-    backgroundColor: AppColors.primary,
+  // Disabled button opacity (40-50%)
+  static const double disabledOpacity = 0.45;
+  
+  // Primary button style - light green with white text
+  static final ButtonStyle primaryButton = ElevatedButton.styleFrom(
+    backgroundColor: AppColors.primaryMedium, // #66BB6A
     foregroundColor: AppColors.white,
     elevation: 2,
+    disabledBackgroundColor: AppColors.primaryMedium.withValues(alpha: disabledOpacity),
+    disabledForegroundColor: AppColors.white.withValues(alpha: disabledOpacity),
     shape: RoundedRectangleBorder(
       borderRadius: AppBorders.borderRadiusMD,
     ),
@@ -234,13 +261,71 @@ class AppButtons {
       vertical: AppSpacing.md,
     ),
     minimumSize: const Size(0, AppButtons.heightMD),
+  ).copyWith(
+    // Pressed/hover state - darker green
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.white.withValues(alpha: 0.2); // White overlay on press
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.white.withValues(alpha: 0.1); // Subtle white overlay on hover
+      }
+      return null;
+    }),
+    backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.disabled)) {
+        return AppColors.primaryMedium.withValues(alpha: disabledOpacity);
+      }
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.primaryDark; // Slightly darker on press
+      }
+      return AppColors.primaryMedium; // Default
+    }),
   );
   
-  // Secondary button style
-  static ButtonStyle secondaryButton = OutlinedButton.styleFrom(
-    foregroundColor: AppColors.primary,
+  // Alternative primary button with #81C784
+  static final ButtonStyle primaryButtonAlt = ElevatedButton.styleFrom(
+    backgroundColor: AppColors.primary, // #81C784
+    foregroundColor: AppColors.white,
+    elevation: 2,
+    disabledBackgroundColor: AppColors.primary.withValues(alpha: disabledOpacity),
+    disabledForegroundColor: AppColors.white.withValues(alpha: disabledOpacity),
+    shape: RoundedRectangleBorder(
+      borderRadius: AppBorders.borderRadiusMD,
+    ),
+    padding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.lg,
+      vertical: AppSpacing.md,
+    ),
+    minimumSize: const Size(0, AppButtons.heightMD),
+  ).copyWith(
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.white.withValues(alpha: 0.2);
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.white.withValues(alpha: 0.1);
+      }
+      return null;
+    }),
+    backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.disabled)) {
+        return AppColors.primary.withValues(alpha: disabledOpacity);
+      }
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.primaryMedium; // Slightly darker on press
+      }
+      return AppColors.primary; // Default
+    }),
+  );
+  
+  // Secondary button style - white background with light green border
+  static final ButtonStyle secondaryButton = OutlinedButton.styleFrom(
+    backgroundColor: AppColors.white,
+    foregroundColor: AppColors.primaryMedium,
+    disabledForegroundColor: AppColors.primaryMedium.withValues(alpha: disabledOpacity),
     side: const BorderSide(
-      color: AppColors.primary,
+      color: AppColors.borderLight, // Light green border
       width: AppBorders.borderWidthMedium,
     ),
     shape: RoundedRectangleBorder(
@@ -251,46 +336,86 @@ class AppButtons {
       vertical: AppSpacing.md,
     ),
     minimumSize: const Size(0, AppButtons.heightMD),
+  ).copyWith(
+    // Pressed/hover state - light green background
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.primaryLight.withValues(alpha: 0.3); // Light green overlay on press
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.primaryLight.withValues(alpha: 0.1); // Subtle overlay on hover
+      }
+      return null;
+    }),
+    side: WidgetStateProperty.resolveWith<BorderSide?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.disabled)) {
+        return BorderSide(
+          color: AppColors.borderLight.withValues(alpha: disabledOpacity),
+          width: AppBorders.borderWidthMedium,
+        );
+      }
+      if (states.contains(WidgetState.pressed)) {
+        return const BorderSide(
+          color: AppColors.borderMedium, // Darker border on press
+          width: AppBorders.borderWidthMedium,
+        );
+      }
+      return const BorderSide(
+        color: AppColors.borderLight,
+        width: AppBorders.borderWidthMedium,
+      );
+    }),
   );
   
-  // Text button style
-  static ButtonStyle textButton = TextButton.styleFrom(
-    foregroundColor: AppColors.primary,
+  // Text button style - light green text
+  static final ButtonStyle textButton = TextButton.styleFrom(
+    foregroundColor: AppColors.primaryMedium,
+    disabledForegroundColor: AppColors.primaryMedium.withValues(alpha: disabledOpacity),
     padding: const EdgeInsets.symmetric(
       horizontal: AppSpacing.md,
       vertical: AppSpacing.sm,
     ),
+  ).copyWith(
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.primaryLight.withValues(alpha: 0.2);
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.primaryLight.withValues(alpha: 0.1);
+      }
+      return null;
+    }),
   );
 }
 
 class AppCards {
-  // Standard card decoration
+  // Standard card decoration - white with subtle shadow
   static BoxDecoration cardDecoration = BoxDecoration(
     color: AppColors.white,
     borderRadius: AppBorders.borderRadiusLG,
-    boxShadow: AppShadows.shadowCard,
+    boxShadow: AppShadows.card,
   );
   
-  // Elevated card decoration
+  // Elevated card decoration - white with slightly more shadow
   static BoxDecoration elevatedCardDecoration = BoxDecoration(
     color: AppColors.white,
     borderRadius: AppBorders.borderRadiusLG,
     boxShadow: AppShadows.shadow3,
   );
   
-  // Card with border
+  // Card with light green border
   static BoxDecoration borderedCardDecoration = BoxDecoration(
     color: AppColors.white,
     borderRadius: AppBorders.borderRadiusLG,
     border: Border.all(
-      color: AppColors.greyLight,
+      color: AppColors.borderLight, // Light green border
       width: AppBorders.borderWidthThin,
     ),
   );
 }
 
 class AppInputs {
-  // Input field decoration
+  // Input field decoration with light green theme
   static InputDecoration inputDecoration({
     required String label,
     String? hint,
@@ -312,21 +437,21 @@ class AppInputs {
       border: OutlineInputBorder(
         borderRadius: AppBorders.borderRadiusMD,
         borderSide: const BorderSide(
-          color: AppColors.greyLight,
+          color: AppColors.borderLight, // Light green border (#C8E6C9)
           width: AppBorders.borderWidthThin,
         ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: AppBorders.borderRadiusMD,
         borderSide: const BorderSide(
-          color: AppColors.greyLight,
+          color: AppColors.borderLight, // Light green border (#C8E6C9)
           width: AppBorders.borderWidthThin,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: AppBorders.borderRadiusMD,
         borderSide: const BorderSide(
-          color: AppColors.primary,
+          color: AppColors.borderMedium, // Medium green border on focus (#66BB6A)
           width: AppBorders.borderWidthMedium,
         ),
       ),
@@ -345,15 +470,154 @@ class AppInputs {
         ),
       ),
       labelStyle: const TextStyle(
-        color: AppColors.textSecondary,
+        color: AppColors.textSecondary, // Medium green (#4A7C59)
         fontSize: AppTypography.fontSizeMD,
         fontWeight: FontWeight.normal,
       ),
       hintStyle: const TextStyle(
-        color: AppColors.textHint,
+        color: AppColors.textHint, // Light gray (#9E9E9E)
         fontSize: AppTypography.fontSizeMD,
       ),
+      prefixIconColor: AppColors.primary, // Light green (#81C784)
+      suffixIconColor: AppColors.primary, // Light green (#81C784)
     );
+  }
+  
+  // Input theme for use in ThemeData
+  static InputDecorationTheme inputTheme = InputDecorationTheme(
+    filled: true,
+    fillColor: AppColors.white,
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.md,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: AppBorders.borderRadiusMD,
+      borderSide: const BorderSide(
+        color: AppColors.borderLight, // Light green border (#C8E6C9)
+        width: AppBorders.borderWidthThin,
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: AppBorders.borderRadiusMD,
+      borderSide: const BorderSide(
+        color: AppColors.borderLight, // Light green border (#C8E6C9)
+        width: AppBorders.borderWidthThin,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: AppBorders.borderRadiusMD,
+      borderSide: const BorderSide(
+        color: AppColors.borderMedium, // Medium green border on focus (#66BB6A)
+        width: AppBorders.borderWidthMedium,
+      ),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: AppBorders.borderRadiusMD,
+      borderSide: const BorderSide(
+        color: AppColors.error,
+        width: AppBorders.borderWidthThin,
+      ),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: AppBorders.borderRadiusMD,
+      borderSide: const BorderSide(
+        color: AppColors.error,
+        width: AppBorders.borderWidthMedium,
+      ),
+    ),
+    labelStyle: const TextStyle(
+      color: AppColors.textSecondary, // Medium green (#4A7C59)
+      fontSize: AppTypography.fontSizeMD,
+      fontWeight: FontWeight.normal,
+    ),
+    hintStyle: const TextStyle(
+      color: AppColors.textHint, // Light gray (#9E9E9E)
+      fontSize: AppTypography.fontSizeMD,
+    ),
+    prefixIconColor: AppColors.primary, // Light green (#81C784)
+    suffixIconColor: AppColors.primary, // Light green (#81C784)
+  );
+}
+
+class AppIconButtons {
+  // Icon button sizes
+  static const double iconSizeSM = 18.0;
+  static const double iconSizeMD = 24.0;
+  static const double iconSizeLG = 28.0;
+  static const double iconSizeXL = 32.0;
+  
+  // Icon button on white backgrounds - light green icons
+  static final ButtonStyle iconButtonOnWhite = IconButton.styleFrom(
+    foregroundColor: AppColors.primary, // Light green (#81C784)
+    iconSize: iconSizeMD,
+  ).copyWith(
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.primaryLight.withValues(alpha: 0.3); // Light green overlay on press
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.primaryLight.withValues(alpha: 0.1); // Subtle overlay on hover
+      }
+      return null;
+    }),
+  );
+  
+  // Icon button on colored backgrounds - white icons
+  static final ButtonStyle iconButtonOnColored = IconButton.styleFrom(
+    foregroundColor: AppColors.white, // White icons
+    iconSize: iconSizeMD,
+  ).copyWith(
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.white.withValues(alpha: 0.2); // White overlay on press
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.white.withValues(alpha: 0.1); // Subtle white overlay on hover
+      }
+      return null;
+    }),
+  );
+  
+  // Icon button on light green backgrounds - medium green icons
+  static final ButtonStyle iconButtonOnLightGreen = IconButton.styleFrom(
+    foregroundColor: AppColors.primaryMedium, // Medium green (#66BB6A)
+    iconSize: iconSizeMD,
+  ).copyWith(
+    overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      if (states.contains(WidgetState.pressed)) {
+        return AppColors.primaryMedium.withValues(alpha: 0.2); // Medium green overlay on press
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return AppColors.primaryMedium.withValues(alpha: 0.1); // Subtle overlay on hover
+      }
+      return null;
+    }),
+  );
+  
+  // Helper method to get appropriate icon color based on background
+  static Color getIconColor({required Color backgroundColor}) {
+    // Calculate relative luminance to determine if background is light or dark
+    final luminance = backgroundColor.computeLuminance();
+    
+    // If background is light (luminance > 0.5), use light green icon
+    // If background is dark (luminance <= 0.5), use white icon
+    if (luminance > 0.5) {
+      return AppColors.primary; // Light green for light backgrounds
+    } else {
+      return AppColors.white; // White for dark/colored backgrounds
+    }
+  }
+  
+  // Helper method to get appropriate icon button style based on background
+  static ButtonStyle getIconButtonStyle({required Color backgroundColor}) {
+    final luminance = backgroundColor.computeLuminance();
+    
+    if (luminance > 0.5) {
+      return iconButtonOnWhite; // Light green icons for light backgrounds
+    } else {
+      return iconButtonOnColored; // White icons for dark/colored backgrounds
+    }
   }
 }
 

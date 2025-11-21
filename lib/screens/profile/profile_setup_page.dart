@@ -43,9 +43,9 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
 
-  // App theme colors
-  final Color primaryColor = const Color(0xFF132a13); // Dark green
-  final Color accentColor = const Color(0xFFecf39e); // Mindaro
+  // App theme colors - using light green from design system
+  final Color primaryColor = const Color(0xFF81C784); // Light green (#81C784)
+  final Color accentColor = const Color(0xFFC8E6C9); // Light green accent
 
   @override
   void initState() {
@@ -376,16 +376,7 @@ class ProfileSetupPageState extends State<ProfileSetupPage>
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              primaryColor,
-              primaryColor.withValues(alpha: 0.7),
-              accentColor,
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
+          color: const Color(0xFFF1F8F4), // Light green background
         ),
         child: SafeArea(
           child: FadeTransition(

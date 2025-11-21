@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../utils/colors.dart' as colors;
+import '../../services/api_service.dart';
 import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/item_card.dart';
-import '../../services/api_service.dart';
-import '../profile/profile_page.dart';
-import 'buyer_cart.dart';
 
 class BuyerDashboard extends StatefulWidget {
   const BuyerDashboard({super.key});
@@ -17,39 +14,22 @@ class BuyerDashboard extends StatefulWidget {
 }
 
 class BuyerDashboardState extends State<BuyerDashboard>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin {
   final ValueNotifier<int> cartItemCount = ValueNotifier<int>(0);
   final ValueNotifier<int> refreshTrigger = ValueNotifier<int>(0);
-  late TabController _tabController;
-  final PageController _pageController = PageController();
+  String? _selectedFilter;
 
   @override
   void initState() {
     super.initState();
     loadCartItemCount();
-    _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        _pageController.animateToPage(
-          _tabController.index,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _pageController.dispose();
     cartItemCount.dispose();
     refreshTrigger.dispose();
     super.dispose();
-  }
-
-  void _onPageChanged(int page) {
-    _tabController.animateTo(page);
   }
 
   Future<void> loadCartItemCount() async {
@@ -77,202 +57,114 @@ class BuyerDashboardState extends State<BuyerDashboard>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: colors.AppColors.scaffoldBackground,
+      backgroundColor:
+          AppColors.backgroundLight, // Light green background (#F1F8F4)
       appBar: AppBarWidget(
         title: 'Browse Products',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
+          color: AppColors.white, // White on colored background
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileUI()),
-              );
-            },
-          ),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          BuyerCart(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        const begin = Offset(1.0, 0.0);
-                        const end = Offset.zero;
-                        const curve = Curves.easeInOut;
-                        var tween = Tween(begin: begin, end: end)
-                            .chain(CurveTween(curve: curve));
-                        return SlideTransition(
-                          position: animation.drive(tween),
-                          child: child,
-                        );
-                      },
-                      transitionDuration: const Duration(milliseconds: 250),
-                    ),
-                  ).then((_) {
-                    loadCartItemCount();
-                    refreshTrigger.value++; // Trigger refresh of item cards
-                  });
-                },
-              ),
-              ValueListenableBuilder<int>(
-                valueListenable: cartItemCount,
-                builder: (context, itemCount, child) {
-                  if (itemCount <= 0) return const SizedBox.shrink();
-
-                  return Positioned(
-                    right: 8,
-                    top: 8,
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.8, end: 1.0),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.elasticOut,
-                      builder: (context, scale, child) {
-                        return Transform.scale(
-                          scale: scale,
-                          child: child,
-                        );
-                      },
-                      child: Container(
-                        key: ValueKey(itemCount),
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 2,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (child, animation) {
-                            return ScaleTransition(
-                              scale: animation,
-                              child: child,
-                            );
-                          },
-                          child: Text(
-                            '$itemCount',
-                            key: ValueKey(itemCount),
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: AppTypography.fontSizeXS,
-                              fontWeight: AppTypography.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: Column(
         children: [
-          // Modern tab bar with refined styling
+          // Filter dropdown - compact and clean
           Container(
-            color: Colors.white,
-            child: Column(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              border: Border(
+                bottom: BorderSide(
+                  color: AppColors.borderLight,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: AppColors.white,
-                    indicatorWeight: 3,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: AppColors.white,
-                    unselectedLabelColor:
-                        AppColors.white.withValues(alpha: 0.65),
-                    labelStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                    ),
-                    unselectedLabelStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    tabs: const [
-                      Tab(
-                        icon: Icon(Icons.apps_rounded, size: 22),
-                        text: 'All Items',
-                      ),
-                      Tab(
-                        icon: Icon(Icons.favorite_rounded, size: 22),
-                        text: 'Donate',
-                      ),
-                      Tab(
-                        icon: Icon(Icons.eco_rounded, size: 22),
-                        text: 'Recyclable',
-                      ),
-                      Tab(
-                        icon: Icon(Icons.delete_sweep_rounded, size: 22),
-                        text: 'Non-Recyclable',
-                      ),
-                    ],
+                Icon(
+                  Icons.filter_list_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Filter:',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: AppTypography.fontSizeMD,
+                    fontWeight: AppTypography.semiBold,
                   ),
                 ),
-                // Subtle divider
-                Container(
-                  height: 1,
-                  decoration: BoxDecoration(
-                    color: AppColors.grey.withValues(alpha: 0.15),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _selectedFilter,
+                      isExpanded: true,
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: AppColors.primary),
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: AppTypography.fontSizeMD,
+                        fontWeight: AppTypography.medium,
+                      ),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('All Items'),
+                        ),
+                        DropdownMenuItem<String?>(
+                          value: 'Donate',
+                          child: Row(
+                            children: [
+                              Icon(Icons.favorite_rounded,
+                                  size: 16, color: AppColors.donate),
+                              const SizedBox(width: 8),
+                              Text('Donate'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem<String?>(
+                          value: 'Recyclable',
+                          child: Row(
+                            children: [
+                              Icon(Icons.eco_rounded,
+                                  size: 16, color: AppColors.recyclable),
+                              const SizedBox(width: 8),
+                              Text('Recyclable'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem<String?>(
+                          value: 'Non-Recyclable',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_sweep_rounded,
+                                  size: 16, color: AppColors.nonRecyclable),
+                              const SizedBox(width: 8),
+                              Text('Non-Recyclable'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        setState(() {
+                          _selectedFilter = value;
+                        });
+                      },
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              children: List.generate(4, (index) {
-                switch (index) {
-                  case 0:
-                    return _buildItemsView(null);
-                  case 1:
-                    return _buildItemsView('Donate');
-                  case 2:
-                    return _buildItemsView('Recyclable');
-                  case 3:
-                    return _buildItemsView('Non-Recyclable');
-                  default:
-                    return _buildItemsView(null);
-                }
-              }),
-            ),
+            child: _buildItemsView(_selectedFilter),
           ),
         ],
       ),
@@ -280,8 +172,6 @@ class BuyerDashboardState extends State<BuyerDashboard>
   }
 
   Widget _buildItemsView(String? filterValue) {
-    const cardColor = colors.AppColors.scaffoldBackground;
-
     return RefreshIndicator(
       onRefresh: () async {
         // Refresh cart count and items
@@ -290,15 +180,16 @@ class BuyerDashboardState extends State<BuyerDashboard>
         // Small delay for smooth UX
         await Future.delayed(const Duration(milliseconds: 300));
       },
-      color: AppColors.primary,
-      backgroundColor: cardColor,
+      color: AppColors.primary, // Light green loading indicator (#81C784)
+      backgroundColor: AppColors.white,
       child: FutureBuilder<List<Map<String, dynamic>>>(
         future: _loadItems(filterValue),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primary), // Light green (#81C784)
                 strokeWidth: 3,
               ),
             );

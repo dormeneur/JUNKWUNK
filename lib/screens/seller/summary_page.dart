@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:junk_wunk/utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../services/api_service.dart';
 import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/s3_image.dart';
-import '../../services/api_service.dart';
 
 class SummaryPage extends StatefulWidget {
   final String? imageUrl;
@@ -77,7 +78,8 @@ class _SummaryPageState extends State<SummaryPage> {
       appBar: AppBarWidget(
         title: 'Your Items',
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back),
+          color: AppColors.white, // White on colored background
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -182,30 +184,21 @@ class _SummaryPageState extends State<SummaryPage> {
           children: [
             if (activeItems.isNotEmpty) ...[
               Padding(
-                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border:
-                        Border.all(color: primaryColor.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.shopping_bag_outlined,
-                          color: primaryColor, size: 22),
-                      SizedBox(width: 8),
-                      Text(
-                        'Active Listings (${activeItems.length})',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 6),
+                child: Row(
+                  children: [
+                    Icon(Icons.shopping_bag_outlined,
+                        color: primaryColor, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'Active Listings (${activeItems.length})',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: primaryColor,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               ListView.builder(
@@ -219,30 +212,21 @@ class _SummaryPageState extends State<SummaryPage> {
             ],
             if (soldItems.isNotEmpty) ...[
               Padding(
-                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border:
-                        Border.all(color: Colors.green.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle_outline,
-                          color: Colors.green[700], size: 22),
-                      SizedBox(width: 8),
-                      Text(
-                        'Sold Items (${soldItems.length})',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
-                        ),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 6),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle_outline,
+                        color: Colors.green[700], size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'Sold Items (${soldItems.length})',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green[700],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               ListView.builder(
@@ -282,8 +266,8 @@ class _SummaryPageState extends State<SummaryPage> {
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -344,7 +328,7 @@ class _SummaryPageState extends State<SummaryPage> {
             ],
           ),
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -358,7 +342,7 @@ class _SummaryPageState extends State<SummaryPage> {
                           Text(
                             itemTitle,
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color:
                                   isItemSold ? Colors.grey[700] : primaryColor,
@@ -366,7 +350,7 @@ class _SummaryPageState extends State<SummaryPage> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: 3),
                           Row(
                             children: [
                               Icon(
@@ -380,39 +364,42 @@ class _SummaryPageState extends State<SummaryPage> {
                               Text(
                                 '₹$itemPrice',
                                 style: TextStyle(
+                                  fontSize: 14,
                                   color: isItemSold
                                       ? Colors.grey[600]
                                       : Colors.green[700],
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               if (itemQuantity != "1" && !isItemSold) ...[
-                                SizedBox(width: 16),
+                                SizedBox(width: 12),
                                 Icon(
                                   Icons.inventory_2_outlined,
-                                  size: 16,
+                                  size: 14,
                                   color: primaryColor,
                                 ),
-                                SizedBox(width: 4),
+                                SizedBox(width: 3),
                                 Text(
                                   'Qty: $itemQuantity',
                                   style: TextStyle(
+                                    fontSize: 13,
                                     color: primaryColor,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                               if (isItemSold && soldDate.isNotEmpty) ...[
-                                SizedBox(width: 16),
+                                SizedBox(width: 12),
                                 Icon(
                                   Icons.calendar_today,
-                                  size: 16,
+                                  size: 14,
                                   color: Colors.grey[600],
                                 ),
-                                SizedBox(width: 4),
+                                SizedBox(width: 3),
                                 Text(
                                   'Sold: $soldDate',
                                   style: TextStyle(
+                                    fontSize: 13,
                                     color: Colors.grey[600],
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -425,38 +412,43 @@ class _SummaryPageState extends State<SummaryPage> {
                     ),
                     if (!isItemSold)
                       IconButton(
-                        icon: Icon(Icons.delete_outline, color: Colors.red),
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        color:
+                            AppColors.error, // Use theme error color (soft red)
                         onPressed: () => _deleteItem(context, itemId),
+                        padding: EdgeInsets.all(8),
+                        constraints: BoxConstraints(),
                       ),
                   ],
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 Text(
                   itemDescription,
                   style: TextStyle(
+                    fontSize: 13,
                     color: isItemSold ? Colors.grey[600] : Colors.grey[800],
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 10),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: itemCategories.map((category) {
                     return isItemSold
                         ? Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               category,
                               style: TextStyle(
                                 color: Colors.grey[700],
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -465,19 +457,22 @@ class _SummaryPageState extends State<SummaryPage> {
                   }).toList(),
                 ),
                 if (!isItemSold) ...[
-                  SizedBox(height: 16),
+                  SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       OutlinedButton.icon(
                         onPressed: () {},
-                        icon: Icon(Icons.edit, color: primaryColor),
-                        label:
-                            Text('Edit', style: TextStyle(color: primaryColor)),
+                        icon: Icon(Icons.edit, size: 16, color: primaryColor),
+                        label: Text('Edit',
+                            style:
+                                TextStyle(fontSize: 13, color: primaryColor)),
                         style: OutlinedButton.styleFrom(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           side: BorderSide(color: primaryColor),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                       ),
@@ -517,13 +512,13 @@ class _SummaryPageState extends State<SummaryPage> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: categoryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: categoryColor.withValues(alpha: 0.5),
-          width: 1.5,
+          color: categoryColor.withValues(alpha: 0.4),
+          width: 1,
         ),
       ),
       child: Row(
@@ -532,15 +527,15 @@ class _SummaryPageState extends State<SummaryPage> {
           Icon(
             categoryIcon,
             color: categoryColor,
-            size: 14,
+            size: 12,
           ),
-          SizedBox(width: 4),
+          SizedBox(width: 3),
           Text(
             category,
             style: TextStyle(
               color: categoryColor,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

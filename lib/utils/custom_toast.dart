@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:junk_wunk/utils/colors.dart';
 
 class CustomToast {
   static OverlayEntry? _currentOverlay;
@@ -73,50 +74,49 @@ class CustomToast {
     }
   }
 
-  /// Shows a success toast with dark green color and check icon
+  /// Shows a success toast with medium green color and check icon
   static void showSuccess(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: const Color(0xFF132a13), // Dark green - darker and richer
+      color: AppColors.success, // Medium green from theme
       icon: Icons.check_circle_outline,
       duration: duration,
     );
   }
 
-  /// Shows an error toast with red color and error icon
+  /// Shows an error toast with soft red color and error icon
   static void showError(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: Colors.red,
+      color: AppColors.error, // Soft red from theme
       icon: Icons.error_outline,
       duration: duration,
     );
   }
 
-  /// Shows an info toast with hunter green color and info icon
+  /// Shows an info toast with blue-green color and info icon
   static void showInfo(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: const Color(0xFF31572c), // Hunter green - darker than before
+      color: AppColors.info, // Blue-green from theme
       icon: Icons.info_outline,
       duration: duration,
     );
   }
 
-  /// Shows a warning toast with hunter green color and warning icon
+  /// Shows a warning toast with soft amber color and warning icon
   static void showWarning(BuildContext context, String message,
       {Duration? duration}) {
     show(
       context: context,
       message: message,
-      color: const Color(
-          0xFF31572c), // Hunter green - same as info for consistency
+      color: AppColors.warning, // Soft amber from theme
       icon: Icons.warning_amber_outlined,
       duration: duration,
     );

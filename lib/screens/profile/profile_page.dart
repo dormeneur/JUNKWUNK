@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../utils/colors.dart' as colors;
 import '../../services/api_service.dart';
+import '../../utils/colors.dart' as colors;
 import 'edit_profile_page.dart';
 
 class ProfileUI extends StatefulWidget {
@@ -44,7 +44,7 @@ class ProfileUIState extends State<ProfileUI> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: const Color(0xFF132a13), // Dark green
+          backgroundColor: colors.AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
@@ -53,7 +53,7 @@ class ProfileUIState extends State<ProfileUI> {
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: const Color(0xFF132a13), // Dark green background
+              color: colors.AppColors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
@@ -68,12 +68,12 @@ class ProfileUIState extends State<ProfileUI> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: colors.AppColors.primaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.logout_rounded,
-                    color: const Color(0xFFecf39e), // Mindaro
+                    color: colors.AppColors.primaryMedium,
                     size: 40,
                   ),
                 ),
@@ -81,7 +81,7 @@ class ProfileUIState extends State<ProfileUI> {
                 Text(
                   'Log Out',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: colors.AppColors.textPrimary,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -91,7 +91,7 @@ class ProfileUIState extends State<ProfileUI> {
                   'Are you sure you want to logout?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: colors.AppColors.textSecondary,
                     fontSize: 16,
                   ),
                 ),
@@ -103,13 +103,17 @@ class ProfileUIState extends State<ProfileUI> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: const Color(0xFF666666),
-                          backgroundColor: const Color(0xFFecf39e), // Mindaro
+                          foregroundColor: colors.AppColors.primaryMedium,
+                          backgroundColor: colors.AppColors.white,
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: colors.AppColors.borderLight,
+                              width: 2,
+                            ),
                           ),
-                          elevation: 4,
+                          elevation: 0,
                         ),
                         child: Text(
                           'Cancel',
@@ -139,13 +143,13 @@ class ProfileUIState extends State<ProfileUI> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFFFF3D00),
+                          foregroundColor: colors.AppColors.white,
+                          backgroundColor: colors.AppColors.primaryMedium,
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          elevation: 4,
+                          elevation: 2,
                         ),
                         child: Text(
                           'Logout',
@@ -249,6 +253,7 @@ class ProfileUIState extends State<ProfileUI> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit, size: 26),
+                color: colors.AppColors.white, // White on colored background
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -268,6 +273,7 @@ class ProfileUIState extends State<ProfileUI> {
               ),
               IconButton(
                 icon: const Icon(Icons.logout, size: 26),
+                color: colors.AppColors.white, // White on colored background
                 onPressed: () => _showLogoutConfirmation(context),
                 tooltip: 'Logout',
               ),
@@ -314,12 +320,12 @@ class ProfileUIState extends State<ProfileUI> {
         const SizedBox(height: 16),
         if (userType.toLowerCase() == 'buyer')
           _buildVerificationCard(isVerifiedByNGO),
-        _buildInfoCard('Email', email, Icons.email_rounded,
-            const Color(0xFF31572c)), // Hunter green
-        _buildInfoCard('Phone', phone, Icons.phone_rounded,
-            const Color(0xFF4f772d)), // Fern green
+        _buildInfoCard(
+            'Email', email, Icons.email_rounded, colors.AppColors.primary),
+        _buildInfoCard(
+            'Phone', phone, Icons.phone_rounded, colors.AppColors.primary),
         _buildInfoCard('Location', location, Icons.location_on_rounded,
-            const Color(0xFF90a955)), // Moss green
+            colors.AppColors.primary),
       ],
     );
   }
@@ -330,7 +336,7 @@ class ProfileUIState extends State<ProfileUI> {
     required int creditPoints,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 30),
+      padding: EdgeInsets.symmetric(vertical: 20),
       child: Column(
         children: [
           // Top header with credits for buyers
@@ -338,77 +344,67 @@ class ProfileUIState extends State<ProfileUI> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (userType.toLowerCase() == 'buyer')
-                Tooltip(
-                  message:
-                      'Earn more credits by:\n• Making donations\n• Referring friends\n• Participating in events',
-                  padding: EdgeInsets.all(12),
-                  margin: EdgeInsets.symmetric(horizontal: 16),
+                Container(
+                  margin: EdgeInsets.only(right: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(8),
+                    color: colors.AppColors.primary, // Light green background
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 3,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
                   ),
-                  textStyle: TextStyle(color: Colors.white),
-                  child: Container(
-                    margin: EdgeInsets.only(right: 16),
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF90a955), // Moss green
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.stars,
+                        color: colors.AppColors.white,
+                        size: 16,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '$creditPoints pts',
+                        style: TextStyle(
+                          color: colors.AppColors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.stars,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '$creditPoints pts',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
             ],
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 16),
 
           // Profile picture with white circle background
           Stack(
             alignment: Alignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(6),
+                padding: EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: colors.AppColors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: Offset(0, 8),
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: Offset(0, 3),
                     ),
                   ],
                 ),
                 child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
+                  radius: 50,
+                  backgroundColor: colors.AppColors.primaryLightest,
                   child: Icon(
                     Icons.person,
-                    size: 70,
-                    color: primaryColor,
+                    size: 56,
+                    color: colors.AppColors.primary,
                   ),
                 ),
               ),
@@ -417,64 +413,63 @@ class ProfileUIState extends State<ProfileUI> {
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    padding: EdgeInsets.all(4),
+                    padding: EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4f772d), // Fern green
+                      color: colors.AppColors.primaryMedium, // Medium green
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border:
+                          Border.all(color: colors.AppColors.white, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 3,
+                          offset: Offset(0, 1),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.verified_user,
-                      color: Colors.white,
-                      size: 26,
+                      color: colors.AppColors.white,
+                      size: 20,
                     ),
                   ),
                 ),
             ],
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 16),
 
-          // Name - dark green on sage background
+          // Name - using text primary color
           Text(
             name,
             style: TextStyle(
-              color: primaryColor, // Dark green
-              fontSize: 26,
+              color: colors.AppColors.textPrimary,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
 
           // User type badge
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: userType.toLowerCase() == "seller"
-                  ? const Color(0xFF4f772d) // Fern green for seller
-                  : const Color(0xFF31572c), // Hunter green for buyer
-              borderRadius: BorderRadius.circular(20),
+              color: colors.AppColors.primaryMedium, // Medium green for both
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
             child: Text(
               userType.toUpperCase(),
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
+                color: colors.AppColors.white,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1,
+                letterSpacing: 0.8,
               ),
             ),
           ),
@@ -489,46 +484,29 @@ class ProfileUIState extends State<ProfileUI> {
     }
 
     return Card(
-      elevation: 4,
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      elevation: 1,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [
-              Colors.green.withValues(alpha: 0.05),
-              Colors.green.withValues(alpha: 0.1)
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+      color: colors.AppColors.white,
+      child: Padding(
+        padding: EdgeInsets.all(12),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                color: colors.AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 Icons.verified_user_rounded,
-                color: Colors.green,
-                size: 28,
+                color: colors.AppColors.primaryMedium,
+                size: 22,
               ),
             ),
-            SizedBox(width: 16),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,18 +514,17 @@ class ProfileUIState extends State<ProfileUI> {
                   Text(
                     'NGO Verification',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                      fontSize: 13,
+                      color: colors.AppColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 2),
                   Text(
                     'Verified by NGO Partner',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: const Color(
-                          0xFF4f772d), // Fern green - matches palette
+                      color: colors.AppColors.primaryMedium,
                     ),
                   ),
                 ],
@@ -562,31 +539,25 @@ class ProfileUIState extends State<ProfileUI> {
   Widget _buildInfoCard(
       String title, String value, IconData icon, Color iconColor) {
     return Card(
-      elevation: 3,
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      elevation: 1,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
+      color: colors.AppColors.white,
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(12),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: iconColor.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                color: colors.AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: iconColor, size: 28),
+              child: Icon(icon, color: colors.AppColors.primary, size: 22),
             ),
-            SizedBox(width: 16),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,17 +565,17 @@ class ProfileUIState extends State<ProfileUI> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                      fontSize: 13,
+                      color: colors.AppColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 2),
                   Text(
                     value.isNotEmpty ? value : 'Not provided',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: primaryColor,
+                      color: colors.AppColors.textPrimary,
                     ),
                   ),
                 ],

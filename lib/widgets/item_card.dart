@@ -177,15 +177,13 @@ class _ItemCardState extends State<ItemCard> {
 
   @override
   Widget build(BuildContext context) {
-    const cardColor = Color(0xFFFFFFFF);
-
     return Card(
-      color: cardColor,
+      color: AppColors.white, // White background
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.15),
+      elevation: 2, // Reduced elevation for subtle shadow
+      shadowColor: Colors.black.withValues(alpha: 0.10), // Subtle shadow (0.08-0.10 opacity)
       shape: RoundedRectangleBorder(
-        borderRadius: AppBorders.borderRadiusLG,
+        borderRadius: AppBorders.borderRadiusLG, // 16px border radius
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,16 +222,10 @@ class _ItemCardState extends State<ItemCard> {
                           ? AppColors.primary.withValues(alpha: 0.9)
                           : (_availableQuantity != null &&
                                   _availableQuantity! <= 0
-                              ? Colors.red.withValues(alpha: 0.9)
+                              ? AppColors.error.withValues(alpha: 0.9) // Use theme error color
                               : AppColors.primary.withValues(alpha: 0.9)),
                       borderRadius: AppBorders.borderRadiusMD,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: AppShadows.subtle, // Use theme shadow
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -309,6 +301,7 @@ class _ItemCardState extends State<ItemCard> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.info_outline),
+                      color: AppColors.primary, // Light green on white background
                       onPressed: () => _showDetailsDialog(
                           context,
                           widget.title,
@@ -340,9 +333,9 @@ class _ItemCardState extends State<ItemCard> {
                           padding: const EdgeInsets.only(right: AppSpacing.sm),
                           child: Chip(
                             label: Text(category),
-                            backgroundColor: _getCategoryColor(category),
-                            labelStyle: const TextStyle(
-                              color: AppColors.white,
+                            backgroundColor: _getCategoryColor(category), // Light green shades
+                            labelStyle: TextStyle(
+                              color: _getCategoryTextColor(category), // Dynamic text color
                               fontSize: 11,
                               fontWeight: AppTypography.bold,
                             ),
@@ -375,9 +368,13 @@ class _ItemCardState extends State<ItemCard> {
                     children: widget.itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor: AppColors.greyDark,
+                        backgroundColor: AppColors.white, // White background
+                        side: BorderSide(
+                          color: AppColors.borderLight, // Light green border
+                          width: AppBorders.borderWidthThin,
+                        ),
                         labelStyle: const TextStyle(
-                          color: AppColors.white,
+                          color: AppColors.primaryMedium, // Green text
                           fontSize: 11,
                           fontWeight: AppTypography.bold,
                         ),
@@ -422,8 +419,8 @@ class _ItemCardState extends State<ItemCard> {
                           color: AppColors.white,
                           borderRadius: AppBorders.borderRadiusMD,
                           border: Border.all(
-                            color: AppColors.primary,
-                            width: 2,
+                            color: AppColors.borderLight, // Light green border
+                            width: AppBorders.borderWidthMedium,
                           ),
                         ),
                         child: Row(
@@ -434,7 +431,8 @@ class _ItemCardState extends State<ItemCard> {
                               onPressed: _selectedQuantity > 1
                                   ? () => _updateQuantity(-1)
                                   : null,
-                              color: AppColors.primary,
+                              color: AppColors.primary, // Light green on white background
+                              disabledColor: AppColors.grey,
                               padding: const EdgeInsets.all(AppSpacing.xs),
                               constraints: const BoxConstraints(),
                               splashRadius: 20,
@@ -458,7 +456,8 @@ class _ItemCardState extends State<ItemCard> {
                                       (_availableQuantity ?? widget.quantity)
                                   ? () => _updateQuantity(1)
                                   : null,
-                              color: AppColors.primary,
+                              color: AppColors.primary, // Light green on white background
+                              disabledColor: AppColors.grey,
                               padding: const EdgeInsets.all(AppSpacing.xs),
                               constraints: const BoxConstraints(),
                               splashRadius: 20,
@@ -510,9 +509,9 @@ class _ItemCardState extends State<ItemCard> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: (_availableQuantity != null &&
                                 _availableQuantity! <= 0)
-                            ? Colors.grey
-                            : AppColors.primary,
-                        foregroundColor: AppColors.white,
+                            ? AppColors.grey
+                            : AppColors.primaryMedium, // Light green (#66BB6A)
+                        foregroundColor: AppColors.white, // White text
                         elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: AppBorders.borderRadiusMD,
@@ -568,7 +567,8 @@ class _ItemCardState extends State<ItemCard> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: const Icon(Icons.close),
+                  color: AppColors.white, // White on dark background
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -595,7 +595,7 @@ class _ItemCardState extends State<ItemCard> {
           shape: RoundedRectangleBorder(
             borderRadius: AppBorders.borderRadiusXL,
           ),
-          backgroundColor: const Color(0xFFFFFFFF), // White - matches card
+          backgroundColor: AppColors.white, // White - matches card
           child: Container(
             width: double.infinity,
             padding: AppSpacing.paddingLG,
@@ -660,6 +660,7 @@ class _ItemCardState extends State<ItemCard> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),
+                        color: AppColors.primary, // Light green on white background
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -681,8 +682,8 @@ class _ItemCardState extends State<ItemCard> {
                       return Chip(
                         label: Text(category),
                         backgroundColor: _getCategoryColor(category),
-                        labelStyle: const TextStyle(
-                          color: AppColors.white,
+                        labelStyle: TextStyle(
+                          color: _getCategoryTextColor(category), // Dynamic text color
                           fontSize: AppTypography.fontSizeMD,
                           fontWeight: AppTypography.medium,
                         ),
@@ -705,10 +706,13 @@ class _ItemCardState extends State<ItemCard> {
                     children: itemTypes.map((type) {
                       return Chip(
                         label: Text(type),
-                        backgroundColor:
-                            AppColors.primary.withValues(alpha: 0.7),
+                        backgroundColor: AppColors.white, // White background
+                        side: BorderSide(
+                          color: AppColors.borderLight, // Light green border
+                          width: AppBorders.borderWidthThin,
+                        ),
                         labelStyle: const TextStyle(
-                          color: AppColors.white,
+                          color: AppColors.primaryMedium, // Green text
                           fontSize: AppTypography.fontSizeMD,
                           fontWeight: AppTypography.medium,
                         ),
@@ -746,13 +750,26 @@ class _ItemCardState extends State<ItemCard> {
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'donate':
-        return AppColors.donate;
+        return AppColors.donate; // #81C784 - Medium green
       case 'recyclable':
-        return AppColors.recyclable;
+        return AppColors.recyclable; // #A5D6A7 - Medium-light green
       case 'non-recyclable':
-        return AppColors.nonRecyclable;
+        return AppColors.nonRecyclable; // #66BB6A - Medium-strong green
       default:
         return AppColors.grey;
+    }
+  }
+
+  Color _getCategoryTextColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'donate':
+        return AppColors.white; // White text on medium green
+      case 'recyclable':
+        return AppColors.textPrimary; // Dark text on lighter green
+      case 'non-recyclable':
+        return AppColors.white; // White text on medium-strong green
+      default:
+        return AppColors.white;
     }
   }
 }

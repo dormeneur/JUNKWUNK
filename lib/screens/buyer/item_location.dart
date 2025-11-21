@@ -171,7 +171,11 @@ class _ItemLocationState extends State<ItemLocation> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF81C784), // Light green (#81C784)
+              ),
+            )
           : Stack(
               children: [
                 GoogleMap(

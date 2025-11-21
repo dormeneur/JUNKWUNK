@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../services/aws_cognito_auth_service.dart';
 import '../services/api_service.dart';
+import '../services/aws_cognito_auth_service.dart';
 import '../utils/auth_helpers_cognito.dart';
+import '../utils/colors.dart';
 import '../utils/custom_toast.dart';
 import '../widgets/email_verification_modal.dart';
 
@@ -263,56 +264,64 @@ class _LoginPageCognitoState extends State<LoginPageCognito> {
         onRecoverPassword: _recoverPassword,
         title: 'JunkWunk',
         theme: LoginTheme(
-          primaryColor: const Color(0xFF132a13), // Dark green
-          accentColor: const Color(0xFFecf39e), // Mindaro
-          errorColor: const Color(0xFFE53935),
-          pageColorLight: const Color(0xFFecf39e), // Mindaro
-          pageColorDark: const Color(0xFF132a13), // Dark green
+          primaryColor: AppColors.primary, // Light green (#81C784)
+          accentColor: AppColors.white, // White
+          errorColor: AppColors.error, // Soft red (#EF5350)
+          pageColorLight: AppColors.white, // White
+          pageColorDark: AppColors.primary, // Light green (#81C784)
           titleStyle: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary, // Dark gray-green
             fontSize: 32,
             fontWeight: FontWeight.bold,
           ),
-          cardTheme: CardTheme(
-            color: const Color(0xFF31572c), // Hunter green
-            elevation: 8,
+          cardTheme: const CardTheme(
+            color: AppColors.white, // White background
+            elevation: 3,
           ),
           bodyStyle: const TextStyle(
             fontSize: 16,
-            color: Color(0xFFFFFFFF), // White
+            color: AppColors.textPrimary, // Dark gray-green
           ),
           textFieldStyle: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary, // Dark gray-green
           ),
           buttonStyle: const TextStyle(
-            color: Color(0xFF132a13), // Dark green
+            color: AppColors.white, // White text on buttons
           ),
-          buttonTheme: LoginButtonTheme(
-            backgroundColor: const Color(0xFF90a955), // Moss green
-            highlightColor: const Color(0xFFecf39e), // Mindaro
-            elevation: 5.0,
+          buttonTheme: const LoginButtonTheme(
+            backgroundColor:
+                AppColors.primaryMedium, // Medium-strong green (#66BB6A)
+            highlightColor: AppColors.primary, // Light green (#81C784)
+            elevation: 2.0,
           ),
           inputTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.2),
+            fillColor: AppColors.white, // White background
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: Colors.white70),
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: const BorderSide(
+                color: AppColors.borderLight, // Light green border (#C8E6C9)
+              ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: Colors.white70),
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: const BorderSide(
+                color: AppColors.borderLight, // Light green border (#C8E6C9)
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: Colors.white),
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: const BorderSide(
+                color: AppColors.borderMedium, // Medium green border (#66BB6A)
+                width: 2.0,
+              ),
             ),
             floatingLabelBehavior: FloatingLabelBehavior.never,
             labelStyle: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textSecondary, // Medium green (#4A7C59)
             ),
             hintStyle: const TextStyle(
-              color: Colors.white70,
+              color: AppColors.textHint, // Light gray (#9E9E9E)
             ),
           ),
         ),

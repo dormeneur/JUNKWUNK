@@ -32,10 +32,12 @@ class MapControls extends StatelessWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.zoom_in),
+                color: const Color(0xFF81C784), // Light green on white background
                 onPressed: onZoomIn,
               ),
               IconButton(
                 icon: const Icon(Icons.zoom_out),
+                color: const Color(0xFF81C784), // Light green on white background
                 onPressed: onZoomOut,
               ),
             ],

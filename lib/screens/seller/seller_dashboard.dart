@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../utils/colors.dart' as colors;
+import '../../services/api_service.dart';
 import '../../utils/custom_toast.dart';
 import '../../utils/design_constants.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/image_uploader.dart';
 import '../../widgets/s3_image.dart';
-import '../../services/api_service.dart';
 import 'summary_page.dart';
 
 class SellerDashboard extends StatefulWidget {
@@ -118,7 +117,8 @@ class SellerDashboardState extends State<SellerDashboard> {
               Material(
                 color: Colors.transparent,
                 child: IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
+                  icon: const Icon(Icons.close),
+                  color: AppColors.white, // White on dark background
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -275,62 +275,18 @@ class SellerDashboardState extends State<SellerDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colors.AppColors.scaffoldBackground,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBarWidget(
         title: 'List Your Item',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.white),
+          icon: const Icon(Icons.arrow_back),
+          color: AppColors.white, // White on colored background
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: AppSpacing.sm),
-            child: Material(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SummaryPage.viewAll(),
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(
-                        Icons.inventory_rounded,
-                        color: AppColors.white,
-                        size: 20,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'My Items',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
-          color: colors.AppColors.scaffoldBackground,
+          color: AppColors.scaffoldBackground,
         ),
         child: SingleChildScrollView(
           child: Padding(
@@ -358,33 +314,18 @@ class SellerDashboardState extends State<SellerDashboard> {
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.25),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 20,
-          ),
+        Icon(
+          icon,
+          color: AppColors.primary,
+          size: 18,
         ),
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           title,
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary,
-            letterSpacing: 0.3,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -395,15 +336,9 @@ class SellerDashboardState extends State<SellerDashboard> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppBorders.radiusLG),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         children: [
@@ -415,7 +350,7 @@ class SellerDashboardState extends State<SellerDashboard> {
                 Container(
                   decoration: BoxDecoration(
                     color: _imageUrl == null
-                        ? AppColors.primary.withValues(alpha: 0.04)
+                        ? AppColors.primaryLightest
                         : Colors.transparent,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
@@ -430,15 +365,15 @@ class SellerDashboardState extends State<SellerDashboard> {
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   AppColors.primary,
                                 ),
-                                strokeWidth: 3,
+                                strokeWidth: 2.5,
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                               Text(
                                 'Uploading...',
                                 style: TextStyle(
                                   color:
                                       AppColors.primary.withValues(alpha: 0.7),
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -458,50 +393,45 @@ class SellerDashboardState extends State<SellerDashboard> {
                                 ),
                               ),
                             )
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.08),
-                                      shape: BoxShape.circle,
+                          : InkWell(
+                              onTap: (_isUploading || _isSubmitting)
+                                  ? null
+                                  : _pickAndUploadImage,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.add_photo_alternate_rounded,
+                                        size: 40,
+                                        color: AppColors.primary,
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.add_photo_alternate_rounded,
-                                      size: 48,
-                                      color: AppColors.primary,
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'Tap to upload image',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'Add Item Photo',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Upload a clear image of your item',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary
-                                          .withValues(alpha: 0.7),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                 ),
                 if (_imageUrl != null)
                   Positioned(
-                    top: 12,
-                    right: 12,
+                    top: 10,
+                    right: 10,
                     child: Material(
                       color: Colors.black.withValues(alpha: 0.6),
                       shape: const CircleBorder(),
@@ -509,11 +439,11 @@ class SellerDashboardState extends State<SellerDashboard> {
                         onTap: _isSubmitting ? null : _pickAndUploadImage,
                         customBorder: const CircleBorder(),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(8),
                           child: const Icon(
                             Icons.edit_rounded,
-                            color: Colors.white,
-                            size: 18,
+                            color: AppColors.white,
+                            size: 16,
                           ),
                         ),
                       ),
@@ -522,34 +452,6 @@ class SellerDashboardState extends State<SellerDashboard> {
               ],
             ),
           ),
-          if (_imageUrl == null)
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: ElevatedButton.icon(
-                onPressed: (_isUploading || _isSubmitting)
-                    ? null
-                    : _pickAndUploadImage,
-                icon: const Icon(Icons.photo_library_rounded, size: 22),
-                label: const Text(
-                  'Choose from Gallery',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -558,39 +460,33 @@ class SellerDashboardState extends State<SellerDashboard> {
   Widget _buildFormSection() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppBorders.radiusLG),
+        boxShadow: AppShadows.card,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTitleField(),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           _buildDescriptionField(),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: _buildPriceField()),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(child: _buildQuantityField()),
             ],
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
           _buildItemTypeSelection(),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
           _buildCategoryTitle(),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           _buildCategories(),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
           _buildSubmitButton(),
         ],
       ),
@@ -696,11 +592,11 @@ class SellerDashboardState extends State<SellerDashboard> {
   Widget _buildItemTypeSelection() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: AppColors.primary.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(AppBorders.radiusMD),
+        color: AppColors.primaryLightest,
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.15),
-          width: 1.5,
+          color: AppColors.borderLight,
+          width: AppBorders.borderWidthThin,
         ),
       ),
       padding: const EdgeInsets.all(16),
@@ -727,7 +623,7 @@ class SellerDashboardState extends State<SellerDashboard> {
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                   letterSpacing: 0.2,
                 ),
               ),
@@ -763,23 +659,17 @@ class SellerDashboardState extends State<SellerDashboard> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : Colors.white,
+                      color: isSelected ? AppColors.primary : AppColors.white,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.primary
-                            : AppColors.grey.withValues(alpha: 0.3),
-                        width: isSelected ? 2 : 1.5,
+                            : AppColors.borderLight,
+                        width: isSelected
+                            ? AppBorders.borderWidthMedium
+                            : AppBorders.borderWidthThin,
                       ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.2),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
+                      boxShadow: isSelected ? AppShadows.shadowPrimary : null,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -862,20 +752,20 @@ class SellerDashboardState extends State<SellerDashboard> {
           color: Colors.transparent,
           child: InkWell(
             onTap: _isSubmitting ? null : () => _toggleCategory(category),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppBorders.radiusMD),
             child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 12,
               ),
               decoration: BoxDecoration(
-                color: isSelected ? categoryColor : Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                color: isSelected ? categoryColor : AppColors.white,
+                borderRadius: BorderRadius.circular(AppBorders.radiusMD),
                 border: Border.all(
-                  color: isSelected
-                      ? categoryColor
-                      : AppColors.grey.withValues(alpha: 0.25),
-                  width: isSelected ? 2 : 1.5,
+                  color: isSelected ? categoryColor : AppColors.borderLight,
+                  width: isSelected
+                      ? AppBorders.borderWidthMedium
+                      : AppBorders.borderWidthThin,
                 ),
                 boxShadow: isSelected
                     ? [
@@ -893,13 +783,14 @@ class SellerDashboardState extends State<SellerDashboard> {
                   Icon(
                     categoryIcon,
                     size: 20,
-                    color: isSelected ? Colors.white : categoryColor,
+                    color: isSelected ? AppColors.white : categoryColor,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     category,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                      color:
+                          isSelected ? AppColors.white : AppColors.textPrimary,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w600,
                       fontSize: 14,
@@ -920,7 +811,7 @@ class SellerDashboardState extends State<SellerDashboard> {
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppBorders.radiusMD),
         boxShadow: _isSubmitting
             ? null
             : [
@@ -936,9 +827,10 @@ class SellerDashboardState extends State<SellerDashboard> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.success,
           foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.grey.withValues(alpha: 0.3),
+          disabledBackgroundColor:
+              AppColors.grey.withValues(alpha: AppButtons.disabledOpacity),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppBorders.radiusMD),
           ),
           elevation: 0,
         ),

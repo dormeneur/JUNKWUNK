@@ -7,8 +7,8 @@ import 'screens/login_page_cognito.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/profile/profile_setup_page.dart';
 import 'screens/seller/seller_dashboard1.dart';
-import 'services/aws_cognito_auth_service.dart';
 import 'services/api_service.dart';
+import 'services/aws_cognito_auth_service.dart';
 import 'utils/design_constants.dart';
 
 bool _userLoggedOut = false;

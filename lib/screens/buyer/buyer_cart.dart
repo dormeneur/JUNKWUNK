@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '/screens/buyer/item_location.dart';
+import '/services/api_service.dart';
 import '/utils/colors.dart' as colors;
 import '/utils/custom_toast.dart';
-import '/widgets/s3_image.dart';
-import '/services/api_service.dart';
 import '/utils/map_coordinates.dart';
+import '/widgets/s3_image.dart';
 
 class BuyerCart extends StatefulWidget {
   const BuyerCart({super.key});
@@ -31,12 +31,13 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   late AnimationController _selectionController;
   final List<AnimationController> _itemControllers = [];
 
-  // Colors from centralized colors.dart
-  final Color primaryColor = colors.AppColors.primaryColor;
-  final Color lightAccent = colors.AppColors.scaffoldBackground;
-  final Color accentColor = colors.AppColors.accentColor;
-  final Color whiteColor = colors.AppColors.cardBackground;
-  final Color blackColor = colors.AppColors.textDark;
+  // Colors from centralized colors.dart - Light Green Theme
+  final Color primaryColor = colors.AppColors.primary; // Medium green #81C784
+  final Color scaffoldBg =
+      colors.AppColors.backgroundLight; // Light green #F1F8F4
+  final Color cardBg = colors.AppColors.white; // White
+  final Color textColor = colors.AppColors.textPrimary; // Dark gray-green
+  final Color borderColor = colors.AppColors.borderLight; // Light green border
 
   @override
   void initState() {
@@ -238,15 +239,15 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: lightAccent,
+      backgroundColor: scaffoldBg, // Light green background #F1F8F4
       appBar: AppBar(
         title: const Text(
           'My Cart',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: primaryColor,
-        elevation: 4,
+        backgroundColor: primaryColor, // Light green #81C784
+        elevation: 2, // Reduced elevation for subtle shadow
         actions: _buildAppBarActions(),
         centerTitle: true,
       ),
@@ -262,7 +263,8 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
 
     return [
       IconButton(
-        icon: Icon(Icons.close, color: whiteColor),
+        icon: const Icon(Icons.close),
+        color: Colors.white, // White on colored background
         onPressed: () {
           setState(() {
             isSelectionMode = false;
@@ -312,15 +314,16 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     final isSelected = selectedItems.contains(item.id);
 
     return Card(
-      elevation: isSelected ? 8 : 2, // Increase elevation when selected
+      color: cardBg, // White background
+      elevation: isSelected ? 4 : 2, // Subtle elevation
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14), // 12-16px radius
         side: BorderSide(
           color: isSelected
-              ? const Color(0xFF4f772d)
-              : Colors.transparent, // Fern green
-          width: 3.0, // Increased border width
+              ? colors.AppColors.primaryMedium // Medium green when selected
+              : borderColor, // Light green border
+          width: isSelected ? 2.0 : 1.0,
         ),
       ),
       child: InkWell(
@@ -349,8 +352,9 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? primaryColor.withValues(alpha: 0.1) : null,
-                borderRadius: BorderRadius.circular(12),
+                color:
+                    isSelected ? primaryColor.withValues(alpha: 0.1) : cardBg,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
                 children: [
@@ -371,12 +375,12 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
+                    color: colors.AppColors.error.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.delete_outline,
-                    color: Colors.red,
+                    color: colors.AppColors.error,
                     size: 20,
                   ),
                 ),
@@ -431,7 +435,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         errorWidget: Container(
           width: 80,
           height: 80,
-          color: lightAccent,
+          color: colors.AppColors.primaryLightest, // Very light green
           child: Icon(Icons.image_not_supported, color: primaryColor),
         ),
       ),
@@ -447,7 +451,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: blackColor,
+            color: textColor, // Dark gray-green
           ),
         ),
         const SizedBox(height: 4),
@@ -458,7 +462,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             Text(
               item.sellerName,
               style: TextStyle(
-                color: primaryColor,
+                color: colors.AppColors.textSecondary, // Medium green
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -469,7 +473,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             Text(
               item.city,
               style: TextStyle(
-                color: primaryColor,
+                color: colors.AppColors.textSecondary, // Medium green
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -484,7 +488,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             Text(
               'Quantity: ${item.quantity}',
               style: TextStyle(
-                color: primaryColor,
+                color: colors.AppColors.textSecondary, // Medium green
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -494,7 +498,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
             Text(
               '₹${item.price.toStringAsFixed(2)}',
               style: TextStyle(
-                color: primaryColor,
+                color: colors.AppColors.textSecondary, // Medium green
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -507,7 +511,7 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: blackColor.withValues(alpha: 0.6),
+            color: colors.AppColors.textHint, // Light gray
             fontSize: 14,
           ),
         ),
@@ -515,19 +519,21 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         Wrap(
           spacing: 4,
           children: item.categories.map((category) {
+            // Use different light green shades for different categories
+            Color categoryColor = _getCategoryColor(category);
             return Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 8,
                 vertical: 4,
               ),
               decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.1),
+                color: categoryColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 category,
                 style: TextStyle(
-                  color: primaryColor,
+                  color: categoryColor,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -539,16 +545,30 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
     );
   }
 
+  // Helper method to get category-specific colors
+  Color _getCategoryColor(String category) {
+    final lowerCategory = category.toLowerCase();
+    if (lowerCategory.contains('donate')) {
+      return colors.AppColors.donate; // #81C784
+    } else if (lowerCategory.contains('recyclable')) {
+      return colors.AppColors.recyclable; // #A5D6A7
+    } else if (lowerCategory.contains('non-recyclable') ||
+        lowerCategory.contains('nonrecyclable')) {
+      return colors.AppColors.nonRecyclable; // #66BB6A
+    }
+    return primaryColor; // Default to primary color
+  }
+
   Widget _buildCheckoutBar() {
     if (cartItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: whiteColor,
+        color: cardBg, // White background
         boxShadow: [
           BoxShadow(
-            color: blackColor.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.08), // Subtle shadow
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -558,25 +578,33 @@ class _BuyerCartState extends State<BuyerCart> with TickerProviderStateMixin {
         children: [
           Text(
             'Selected: ${selectedItems.length}',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              color: textColor, // Dark gray-green
             ),
           ),
           const Spacer(),
           ElevatedButton(
             onPressed: selectedItems.isNotEmpty ? _processCheckout : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
+              backgroundColor:
+                  colors.AppColors.primaryMedium, // Medium green #66BB6A
+              foregroundColor: Colors.white,
+              disabledBackgroundColor:
+                  colors.AppColors.primaryMedium.withValues(alpha: 0.45),
+              disabledForegroundColor: Colors.white.withValues(alpha: 0.45),
               padding: const EdgeInsets.symmetric(
                 horizontal: 24,
                 vertical: 12,
               ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text(
+            child: const Text(
               'Request Items',
               style: TextStyle(
-                color: whiteColor,
                 fontWeight: FontWeight.bold,
               ),
             ),

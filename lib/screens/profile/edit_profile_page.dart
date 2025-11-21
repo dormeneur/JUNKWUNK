@@ -3,10 +3,10 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../services/api_service.dart';
 import '../../utils/colors.dart' as colors;
 import '../../utils/custom_toast.dart';
 import '../../utils/design_constants.dart';
-import '../../services/api_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String name;
@@ -169,7 +169,8 @@ class EditProfilePageState extends State<EditProfilePage> {
           iconTheme: IconThemeData(color: Colors.white),
           actions: [
             IconButton(
-              icon: Icon(Icons.edit, color: Colors.white),
+              icon: const Icon(Icons.edit),
+              color: Colors.white, // White on colored background
               onPressed: () {
                 CustomToast.showInfo(
                     context, 'Profile is already in edit mode');
@@ -253,7 +254,10 @@ class EditProfilePageState extends State<EditProfilePage> {
                       ),
                     ),
                     child: _isLoading
-                        ? CircularProgressIndicator(color: AppColors.white)
+                        ? CircularProgressIndicator(
+                            color: AppColors.white,
+                            strokeWidth: 2,
+                          )
                         : Text(
                             "Save Changes",
                             style: TextStyle(

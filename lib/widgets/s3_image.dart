@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/s3_service.dart';
+import '../utils/colors.dart';
 
 /// Widget to display S3 images with presigned URLs
 class S3Image extends StatefulWidget {
@@ -97,7 +98,7 @@ class _S3ImageState extends State<S3Image> {
             width: widget.width,
             height: widget.height,
             child: const Center(
-              child: Icon(Icons.error_outline, color: Colors.grey),
+              child: Icon(Icons.error_outline, color: AppColors.grey),
             ),
           );
     }
@@ -125,7 +126,7 @@ class _S3ImageState extends State<S3Image> {
               width: widget.width,
               height: widget.height,
               child: const Center(
-                child: Icon(Icons.error_outline, color: Colors.grey),
+                child: Icon(Icons.error_outline, color: AppColors.grey),
               ),
             );
       },

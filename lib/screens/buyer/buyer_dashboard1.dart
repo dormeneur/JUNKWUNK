@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../main.dart' as main_app;
+import '../../utils/colors.dart' as colors;
 import 'mediator/page1.dart';
 import 'mediator/page2.dart';
 import 'mediator/page3.dart';
@@ -73,7 +74,8 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout),
+            color: Colors.white, // White on colored background
             onPressed: () => _showLogoutConfirmation(context),
             tooltip: 'Logout',
           ),
@@ -87,6 +89,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
+          backgroundColor: colors.AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
@@ -95,10 +98,10 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: const Color(0xFF5d8a66), // Lighter forest green background
+              color: colors.AppColors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: Offset(0, 4),
                 ),
@@ -110,12 +113,12 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: colors.AppColors.primaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.logout_rounded,
-                    color: const Color(0xFFf4f7d9), // Lighter accent
+                    color: colors.AppColors.primaryMedium,
                     size: 40,
                   ),
                 ),
@@ -123,7 +126,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                 Text(
                   'Log Out',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: colors.AppColors.textPrimary,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -133,7 +136,7 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                   'Are you sure you want to logout?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: colors.AppColors.textSecondary,
                     fontSize: 16,
                   ),
                 ),
@@ -145,14 +148,17 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: const Color(0xFF3a3a3a),
-                          backgroundColor:
-                              const Color(0xFFf4f7d9), // Lighter accent
+                          foregroundColor: colors.AppColors.primaryMedium,
+                          backgroundColor: colors.AppColors.white,
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: colors.AppColors.borderLight,
+                              width: 2,
+                            ),
                           ),
-                          elevation: 4,
+                          elevation: 0,
                         ),
                         child: Text(
                           'Cancel',
@@ -171,13 +177,13 @@ class BuyerDashboard1State extends State<BuyerDashboard1> {
                           main_app.handleLogoutCognito(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFFFF3D00),
+                          foregroundColor: colors.AppColors.white,
+                          backgroundColor: colors.AppColors.primaryMedium,
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          elevation: 4,
+                          elevation: 2,
                         ),
                         child: Text(
                           'Logout',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/aws_cognito_auth_service.dart';
+import '../utils/colors.dart' as colors;
 
 class EmailVerificationModal extends StatefulWidget {
   final String email;
@@ -55,9 +56,9 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email verified successfully! Please log in.'),
-            backgroundColor: Color(0xFF4CAF50),
+          SnackBar(
+            content: const Text('Email verified successfully! Please log in.'),
+            backgroundColor: colors.AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -87,8 +88,8 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
           SnackBar(
             content: Text(result['message']),
             backgroundColor: result['success']
-                ? const Color(0xFF4CAF50)
-                : const Color(0xFFE53935),
+                ? colors.AppColors.success
+                : colors.AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -108,9 +109,9 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colors.AppColors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
@@ -132,27 +133,27 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 24),
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: colors.AppColors.borderLight,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
 
                   // Icon
-                  const Icon(
+                  Icon(
                     Icons.mark_email_read_outlined,
                     size: 64,
-                    color: Color(0xFF4CAF50),
+                    color: colors.AppColors.primaryMedium,
                   ),
                   const SizedBox(height: 20),
 
                   // Title
-                  const Text(
+                  Text(
                     'Verify Your Email',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF132a13),
+                      color: colors.AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -163,17 +164,17 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
                     'We\'ve sent a verification code to:',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: colors.AppColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     widget.email,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF132a13),
+                      color: colors.AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -185,31 +186,37 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
                     decoration: InputDecoration(
                       labelText: 'Verification Code',
                       hintText: 'Enter 6-digit code',
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.lock_outline,
-                        color: Color(0xFF4CAF50),
+                        color: colors.AppColors.primary,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF90a955),
+                        borderSide: BorderSide(
+                          color: colors.AppColors.borderLight,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: colors.AppColors.borderLight,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF4CAF50),
+                        borderSide: BorderSide(
+                          color: colors.AppColors.borderMedium,
                           width: 2,
                         ),
                       ),
                       filled: true,
-                      fillColor: const Color(0xFFF5F5F5),
+                      fillColor: colors.AppColors.white,
+                      labelStyle: TextStyle(
+                        color: colors.AppColors.textSecondary,
+                      ),
+                      hintStyle: TextStyle(
+                        color: colors.AppColors.textHint,
+                      ),
                     ),
                     keyboardType: TextInputType.number,
                     maxLength: 6,
@@ -230,23 +237,23 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFEBEE),
+                        color: colors.AppColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE53935)),
+                        border: Border.all(color: colors.AppColors.error),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
-                            color: Color(0xFFE53935),
+                            color: colors.AppColors.error,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _errorMessage!,
-                              style: const TextStyle(
-                                color: Color(0xFFE53935),
+                              style: TextStyle(
+                                color: colors.AppColors.error,
                                 fontSize: 13,
                               ),
                             ),
@@ -260,21 +267,21 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _verifyCode,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                      foregroundColor: Colors.white,
+                      backgroundColor: colors.AppColors.primaryMedium,
+                      foregroundColor: colors.AppColors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 2,
-                      disabledBackgroundColor: Colors.grey[300],
+                      disabledBackgroundColor: colors.AppColors.primaryMedium.withValues(alpha: 0.45),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: colors.AppColors.white,
                               strokeWidth: 2,
                             ),
                           )
@@ -292,14 +299,14 @@ class _EmailVerificationModalState extends State<EmailVerificationModal> {
                   // Resend code button
                   TextButton.icon(
                     onPressed: _isLoading ? null : _resendCode,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.refresh,
-                      color: Color(0xFF4CAF50),
+                      color: colors.AppColors.primaryMedium,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Resend Code',
                       style: TextStyle(
-                        color: Color(0xFF4CAF50),
+                        color: colors.AppColors.primaryMedium,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

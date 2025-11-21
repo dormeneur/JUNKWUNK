@@ -124,10 +124,11 @@ class S3Service {
       final sortedParams = queryParams.entries.toList()
         ..sort((a, b) => a.key.compareTo(b.key));
 
-      final canonicalQueryString = sortedParams
-          .map((e) =>
-              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-          .join('&');
+      final canonicalQueryString = // ✅ CORRECT - This is the proper way
+          sortedParams
+              .map((e) =>
+                  '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+              .join('&');
 
       final canonicalRequest = [
         'GET',
@@ -211,11 +212,7 @@ class S3Service {
   }
 
   String _formatDateTime(DateTime date) {
-    return '${date
-            .toIso8601String()
-            .replaceAll('-', '')
-            .replaceAll(':', '')
-            .split('.')[0]}Z';
+    return '${date.toIso8601String().replaceAll('-', '').replaceAll(':', '').split('.')[0]}Z';
   }
 
   String _generateSignature({

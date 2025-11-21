@@ -150,7 +150,7 @@ class AWSCognitoAuthService {
 
       final Map<String, dynamic> attributesMap = {};
       for (var attribute in attributes) {
-        attributesMap[attribute.name!] = attribute.value;
+        attributesMap[attribute.name!] = attribute.value!;
       }
 
       return attributesMap;
